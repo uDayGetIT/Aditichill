@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
         io.emit('new-message', message);
 
         // Check for trigger words and emit effects
-        const triggerWords = ['heart', 'love', 'lol', 'lmao', 'haha', 'cute', 'beautiful', 'amazing', 'wow', 'fire', 'based', 'cringe', 'poggers', 'nice', 'wholesome'];
+        const triggerWords = ['ex', 'bc', 'wtf', 'heart', 'momo', 'aditya', 'xd'];
         
         const lowerMessage = messageData.content.toLowerCase();
         triggerWords.forEach(trigger => {
