@@ -312,6 +312,22 @@
             color: #46d160;
             text-align: center;
             font-style: italic;
+            animation: flashMessage 2s ease-in-out forwards;
+        }
+
+        @keyframes flashMessage {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            70% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
 
         .typing-indicator {
@@ -362,6 +378,121 @@
 
         .send-btn:hover {
             background: #1484d6;
+        }
+
+        /* Award Modal Styles */
+        .award-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .award-modal.show {
+            display: flex;
+        }
+
+        .award-modal-content {
+            background: #1a1a1b;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .award-modal h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .award-categories {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: #343536;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: #d7dadc;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .category-btn.active {
+            background: #ff4500;
+            color: white;
+        }
+
+        .awards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .award-item {
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .award-item:hover {
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .award-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .award-name {
+            color: #d7dadc;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .award-description {
+            color: #818384;
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #818384;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #d7dadc;
         }
 
         .rain-container {
@@ -420,6 +551,64 @@
             font-size: 16px;
         }
 
+        .award-popup .award-emoji {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* Poll Styles */
+        .poll-options {
+            margin: 20px 0;
+        }
+
+        .poll-option {
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .poll-option:hover {
+            border-color: #ff4500;
+            background: #343536;
+        }
+
+        .poll-option.voted {
+            border-color: #46d160;
+            background: #2d5016;
+        }
+
+        #pollQuestion {
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #d7dadc;
+            line-height: 1.4;
+        }
+
+        .poll-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 8px 0;
+        }
+
+        .poll-result-bar {
+            height: 6px;
+            background: #ff4500;
+            border-radius: 3px;
+            margin-top: 8px;
+            transition: width 0.5s ease;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.6; }
@@ -439,11 +628,41 @@
             #videoPlayer {
                 height: 250px;
             }
+            
+            .awards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
     <div class="rain-container" id="rainContainer"></div>
+    
+    <!-- Award Modal -->
+    <div class="award-modal" id="awardModal">
+        <div class="award-modal-content">
+            <button class="modal-close" onclick="closeAwardModal()">&times;</button>
+            <h2>🏆 Choose an Award</h2>
+            
+            <div class="award-categories">
+                <button class="category-btn active" onclick="filterAwards('all')">All Awards</button>
+            </div>
+            
+            <div class="awards-grid" id="awardsGrid"></div>
+        </div>
+    </div>
+    
+    <!-- Poll Modal -->
+    <div class="award-modal" id="pollModal">
+        <div class="award-modal-content">
+            <h2>💝 Getting To Know Each Other</h2>
+            <div id="pollContent">
+                <div id="pollQuestion"></div>
+                <div class="poll-options" id="pollOptions"></div>
+                <div id="pollResults" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
     
     <div class="container">
         <div class="video-section">
@@ -457,7 +676,7 @@
                         <span style="margin-left: 12px;" id="timeDisplay">🕐 Loading times...</span>
                     </div>
                     <div class="upvote-section">
-                        <span class="arrow upvoted" onclick="giveAward()">▲</span>
+                        <span class="arrow upvoted" onclick="openAwardModal()">▲</span>
                         <span style="color: #ff4500; font-weight: bold;">∞</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -481,19 +700,14 @@
                     placeholder="Drop that YouTube link here... let's watch together! 🎬"
                 >
                 
-                <iframe 
-                    id="videoPlayer"
-                    src=""
-                    frameborder="0" 
-                    allowfullscreen>
-                </iframe>
+                <div id="videoPlayer"></div>
                 
                 <div class="video-controls">
                     <button class="control-btn" id="loadBtn" onclick="loadVideo()">Load Video</button>
                     <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
                     <button class="control-btn" id="syncBtn" onclick="syncVideo()">Sync 🔄</button>
                     <button class="control-btn" id="surpriseBtn" onclick="surpriseMe()">Surprise Me! ✨</button>
-                    <button class="control-btn" id="awardBtn" onclick="giveAward()">Give Award 🏆</button>
+                    <button class="control-btn" id="awardBtn" onclick="openAwardModal()">Give Award 🏆</button>
                 </div>
             </div>
         </div>
@@ -526,39 +740,134 @@
         </div>
     </div>
 
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         // Global video state
         let isVideoPlaying = false;
-        let videoElement = null;
+        let player = null;
+        let currentVideoId = null;
+        let isPlayerReady = false;
+        let ignoreNextStateChange = false;
+
+        // Award system - Personal & Fun Awards Only
+        const awards = {
+            personal: [
+                { emoji: '😴', name: 'Nobita Award', description: 'I think you should sleep' },
+                { emoji: '💕', name: 'Heart Award', description: 'I Love it' },
+                { emoji: '🤗', name: 'Hug Award', description: 'Sending you a tight virtual hug' },
+                { emoji: '🥟', name: 'Momo Award', description: 'You seem to be hungry' },
+                { emoji: '😂', name: 'Laugh Award', description: 'Stop this is too funny' },
+                { emoji: '🤝', name: 'Hand Award', description: 'Let's get married' },
+                { emoji: '🌈', name: 'Aditya Award', description: 'Suddenly Gay' }
+            ]
+        };
+
+        // YouTube API ready callback
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+        }
+
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            console.log('Player Ready');
+            updatePlayPauseButton();
+        }
+
+        function onPlayerStateChange(event) {
+            if (ignoreNextStateChange) {
+                ignoreNextStateChange = false;
+                return;
+            }
+
+            const isPlaying = event.data === YT.PlayerState.PLAYING;
+            const isPaused = event.data === YT.PlayerState.PAUSED;
+            
+            if (isPlaying || isPaused) {
+                isVideoPlaying = isPlaying;
+                updatePlayPauseButton();
+                
+                // Only emit if this is a user-initiated change
+                socket.emit('video-playpause', {
+                    isPlaying: isPlaying,
+                    currentTime: player.getCurrentTime(),
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        // Initialize awards grid
+        function initializeAwards() {
+            const grid = document.getElementById('awardsGrid');
+            const allAwards = awards.personal;
+            
+            allAwards.forEach((award, index) => {
+                const div = document.createElement('div');
+                div.className = `award-item personal`;
+                div.innerHTML = `
+                    <span class="award-emoji">${award.emoji}</span>
+                    <div class="award-name">${award.name}</div>
+                    <div class="award-description">${award.description}</div>
+                `;
+                div.onclick = () => giveSelectedAward(award);
+                grid.appendChild(div);
+            });
+        }
+
+        function openAwardModal() {
+            document.getElementById('awardModal').classList.add('show');
+        }
+
+        function closeAwardModal() {
+            document.getElementById('awardModal').classList.remove('show');
+        }
+
+        function filterAwards(category) {
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show all awards (since we only have one category now)
+            const awards = document.querySelectorAll('.award-item');
+            awards.forEach(award => {
+                award.style.display = 'block';
+            });
+        }
+
+        function giveSelectedAward(award) {
+            socket.emit('give-award', award);
+            closeAwardModal();
+        }
 
         // Update time display
         function updateTimeDisplay() {
             const now = new Date();
             
             // Mumbai time (IST - UTC+5:30)
-            const mumbaiTime = now.toLocaleTimeString('en-US', {
+            const mumbaiTime = now.toLocaleTimeString('en-IN', {
                 timeZone: 'Asia/Kolkata',
-                hour: 'numeric',
+                hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
             
-            // Dubai time (GST - UTC+4:00)
-            const dubaiTime = now.toLocaleTimeString('en-US', {
-                timeZone: 'Asia/Dubai', 
-                hour: 'numeric',
+            // Dubai time (GST - UTC+4:00)  
+            const dubaiTime = now.toLocaleTimeString('en-AE', {
+                timeZone: 'Asia/Dubai',
+                hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
             
-            document.getElementById('timeDisplay').innerHTML = `🇮🇳 Mumbai ${mumbaiTime} | 🇦🇪 Dubai ${dubaiTime}`;
+            document.getElementById('timeDisplay').innerHTML = `🇮🇳 ${mumbaiTime} | 🇦🇪 ${dubaiTime}`;
         }
 
         // Update time every second
         setInterval(updateTimeDisplay, 1000);
         updateTimeDisplay();
+
         // Get username from URL parameter or prompt
         const urlParams = new URLSearchParams(window.location.search);
         let currentUser = urlParams.get('user') || 'ud0_0';
@@ -576,6 +885,25 @@
         const socket = io();
         let typingTimer;
         let currentVideoUrl = '';
+        let pollTimer = null;
+
+        // Start poll timer (10-15 minutes)
+        function startPollTimer() {
+            const randomDelay = (10 + Math.random() * 5) * 60 * 1000; // 10-15 minutes
+            
+            pollTimer = setTimeout(() => {
+                if (document.querySelectorAll('.message').length > 5) { // Only if there's been some conversation
+                    const randomPoll = romanticPolls[Math.floor(Math.random() * romanticPolls.length)];
+                    socket.emit('start-poll', randomPoll);
+                }
+                startPollTimer(); // Schedule next poll
+            }, randomDelay);
+        }
+
+        // Initialize awards when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAwards();
+        });
 
         // Connection status
         socket.on('connect', () => {
@@ -587,6 +915,9 @@
                 username: currentUser,
                 location: currentUser === 'ud0_0' ? 'Mumbai' : 'Dubai'
             });
+            
+            // Start poll timer after connection
+            startPollTimer();
         });
 
         socket.on('disconnect', () => {
@@ -635,44 +966,80 @@
 
         // Video events
         socket.on('video-loaded', (data) => {
-            document.getElementById('videoPlayer').src = data.embedUrl;
-            currentVideoUrl = data.embedUrl;
+            currentVideoId = data.videoId;
+            
+            // Destroy existing player
+            if (player) {
+                player.destroy();
+            }
+            
+            // Create new player
+            player = new YT.Player('videoPlayer', {
+                height: '400',
+                width: '100%',
+                videoId: currentVideoId,
+                playerVars: {
+                    autoplay: 0,
+                    controls: 1,
+                    rel: 0,
+                    modestbranding: 1
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+            
             addSystemMessage(`🎬 ${data.user} loaded: "${data.title || 'New video'}"`);
         });
 
         socket.on('video-playpause-sync', (data) => {
+            if (!player || !isPlayerReady) return;
+            
             isVideoPlaying = data.isPlaying;
             updatePlayPauseButton();
             
-            // Try to control the iframe video
-            const iframe = document.getElementById('videoPlayer');
-            if (iframe && iframe.contentWindow) {
-                try {
-                    if (data.isPlaying) {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    } else {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                    }
-                } catch(e) {
-                    console.log('Video sync attempt - iframe communication limited');
-                }
+            // Ignore the next state change to prevent infinite loop
+            ignoreNextStateChange = true;
+            
+            if (data.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
             }
         });
 
         socket.on('video-progress-sync', (data) => {
-            // Sync video time if possible
-            const iframe = document.getElementById('videoPlayer');
-            if (iframe && iframe.contentWindow) {
-                try {
-                    iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":"[${data.currentTime}, true]"}`, '*');
-                } catch(e) {
-                    console.log('Video time sync attempt - iframe communication limited');
-                }
+            if (!player || !isPlayerReady) return;
+            
+            // Only sync if time difference is significant
+            const currentTime = player.getCurrentTime();
+            if (Math.abs(currentTime - data.currentTime) > 2) {
+                player.seekTo(data.currentTime, true);
             }
         });
 
         socket.on('video-sync', (state) => {
-            // Handle video sync
+            if (!player || !isPlayerReady || !state.videoId) return;
+            
+            // Load video if different
+            if (currentVideoId !== state.videoId) {
+                currentVideoId = state.videoId;
+                player.loadVideoById(state.videoId);
+            }
+            
+            // Sync play state and time
+            ignoreNextStateChange = true;
+            if (state.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+            
+            if (state.currentTime) {
+                player.seekTo(state.currentTime, true);
+            }
+            
             addSystemMessage('🔄 Videos synchronized!');
         });
 
@@ -682,13 +1049,34 @@
         });
 
         socket.on('award-given', (data) => {
-            showAwardPopup(data.award.name, `${data.user} gave an award!`);
+            showAwardPopup(data.award.name, data.award.emoji, `${data.user} gave an award!`);
             triggerRain('wholesome');
         });
 
         socket.on('surprise-popup', (data) => {
             showSurprisePopup(data.message);
             triggerRain('wholesome');
+        });
+
+        // Poll events
+        socket.on('poll-started', (pollData) => {
+            currentPoll = pollData;
+            pollVotes.clear();
+            hasVotedInCurrentPoll = false;
+            showPoll(pollData);
+            addSystemMessage('💝 A new poll has started! Check it out!');
+        });
+
+        socket.on('poll-vote', (voteData) => {
+            pollVotes.set(voteData.user, voteData.option);
+            updatePollResults();
+        });
+
+        socket.on('poll-ended', () => {
+            setTimeout(() => {
+                document.getElementById('pollModal').classList.remove('show');
+                currentPoll = null;
+            }, 5000); // Show results for 5 seconds
         });
 
         // Rain effects mapping
@@ -750,12 +1138,8 @@
                     videoId = url.split('v=')[1].split('&')[0];
                 }
                 
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1&autoplay=0`;
-                currentVideoUrl = embedUrl;
-                
                 socket.emit('load-video', {
                     url: url,
-                    embedUrl: embedUrl,
                     videoId: videoId,
                     title: 'YouTube Video'
                 });
@@ -763,14 +1147,29 @@
         }
 
         function togglePlayPause() {
-            isVideoPlaying = !isVideoPlaying;
+            if (!player || !isPlayerReady) {
+                alert('Please load a video first!');
+                return;
+            }
+            
+            const playerState = player.getPlayerState();
+            const shouldPlay = playerState !== YT.PlayerState.PLAYING;
+            
+            isVideoPlaying = shouldPlay;
             updatePlayPauseButton();
             
             socket.emit('video-playpause', {
-                isPlaying: isVideoPlaying,
-                currentTime: 0, // We can't easily get current time from iframe
+                isPlaying: shouldPlay,
+                currentTime: player.getCurrentTime(),
                 timestamp: Date.now()
             });
+            
+            // Control local player
+            if (shouldPlay) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
         }
 
         function updatePlayPauseButton() {
@@ -779,24 +1178,20 @@
         }
 
         function syncVideo() {
-            socket.emit('sync-request');
+            if (!player || !isPlayerReady) {
+                addSystemMessage('⚠️ Please load a video first!');
+                return;
+            }
+            
+            socket.emit('sync-request', {
+                currentTime: player.getCurrentTime(),
+                isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING
+            });
         }
 
         function surpriseMe() {
-            socket.emit('surprise-me');
-        }
-
-        function giveAward() {
-            const awards = [
-                { name: 'Wholesome Award', message: 'This date deserves a wholesome award! 🤗' },
-                { name: 'Silver Award', message: 'Have some silver for this amazing setup! 🥈' },
-                { name: 'Heart Eyes Award', message: 'Absolutely adorable date night! 😍' },
-                { name: 'MOMO Special', message: 'It\'s not MOMOS, it\'s MOMO! 😤' },
-                { name: 'Thomas Award', message: 'Thomas approved this date! 👀✅' }
-            ];
-            
-            const award = awards[Math.floor(Math.random() * awards.length)];
-            socket.emit('give-award', award);
+            const randomSurprise = personalSurprises[Math.floor(Math.random() * personalSurprises.length)];
+            socket.emit('surprise-me', { message: randomSurprise });
         }
 
         function addMessage(content, username, userClass, isSystem = false) {
@@ -822,10 +1217,27 @@
             
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv; // Return the element so it can be removed later
         }
 
         function addSystemMessage(text) {
-            addMessage(text, 'System', '', true);
+            const messageDiv = addMessage(text, 'System', '', true);
+            
+            // Remove the system message after 2.5 seconds
+            setTimeout(() => {
+                if (messageDiv && messageDiv.parentNode) {
+                    messageDiv.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 2000);
         }
 
         function triggerRain(type) {
@@ -853,10 +1265,11 @@
             }, 4000);
         }
 
-        function showAwardPopup(awardName, message) {
+        function showAwardPopup(awardName, awardEmoji, message) {
             const popup = document.createElement('div');
             popup.className = 'award-popup';
             popup.innerHTML = `
+                <div class="award-emoji">${awardEmoji}</div>
                 <h3>🏆 ${awardName}</h3>
                 <p>${message}</p>
             `;
@@ -888,13 +1301,101 @@
             }
         }
 
+        // Poll functions
+        function showPoll(pollData) {
+            document.getElementById('pollQuestion').textContent = pollData.question;
+            
+            const optionsContainer = document.getElementById('pollOptions');
+            optionsContainer.innerHTML = '';
+            
+            pollData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'poll-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => votePoll(index, option);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('pollResults').style.display = 'none';
+            document.getElementById('pollModal').classList.add('show');
+        }
+
+        function votePoll(optionIndex, optionText) {
+            if (hasVotedInCurrentPoll) return;
+            
+            hasVotedInCurrentPoll = true;
+            
+            // Mark as voted
+            document.querySelectorAll('.poll-option')[optionIndex].classList.add('voted');
+            document.querySelectorAll('.poll-option').forEach(opt => opt.style.pointerEvents = 'none');
+            
+            // Send vote
+            socket.emit('poll-vote', {
+                pollId: currentPoll.id,
+                option: optionText,
+                user: currentUser
+            });
+            
+            // Show results after a moment
+            setTimeout(() => {
+                document.getElementById('pollOptions').style.display = 'none';
+                document.getElementById('pollResults').style.display = 'block';
+                updatePollResults();
+            }, 1000);
+        }
+
+        function updatePollResults() {
+            if (!currentPoll) return;
+            
+            const resultsContainer = document.getElementById('pollResults');
+            resultsContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #46d160;">Results so far:</h3>';
+            
+            const totalVotes = pollVotes.size;
+            const voteCounts = new Map();
+            
+            // Count votes
+            pollVotes.forEach(option => {
+                voteCounts.set(option, (voteCounts.get(option) || 0) + 1);
+            });
+            
+            // Display results
+            currentPoll.options.forEach(option => {
+                const count = voteCounts.get(option) || 0;
+                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'poll-result';
+                resultDiv.innerHTML = `
+                    <div>
+                        <div>${option}</div>
+                        <div class="poll-result-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div style="color: #ff4500; font-weight: bold;">${count} vote${count !== 1 ? 's' : ''}</div>
+                `;
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            if (totalVotes >= 2) {
+                setTimeout(() => {
+                    socket.emit('poll-end');
+                }, 3000);
+            }
+        }
+
+        // Initialize awards when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAwards);
+        } else {
+            initializeAwards();
+        }
+
         // Initialize welcome messages after connection
         socket.on('system-message', (data) => {
             if (data.message.includes('joined the virtual date')) {
                 setTimeout(() => {
-                    addSystemMessage('💕 Welcome to your real-time virtual date Aditi!');
+                    addSystemMessage('💕 Welcome to your virtual date Aditi!');
                     addSystemMessage('💡 Try typing "heart", "fire", "lol", or "wholesome" for special effects!');
-                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of you!');
+                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of us');
                 }, 2000);
             }
         });
