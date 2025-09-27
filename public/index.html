@@ -537,6 +537,7 @@
             z-index: 10000;
             animation: popupShow 0.5s ease forwards;
             box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+            max-width: 400px;
         }
 
         @keyframes popupShow {
@@ -554,6 +555,13 @@
         .award-popup .award-emoji {
             font-size: 48px;
             margin-bottom: 12px;
+        }
+
+        .award-popup .award-description {
+            color: #818384;
+            font-size: 14px;
+            margin-top: 8px;
+            font-style: italic;
         }
 
         /* Poll Styles */
@@ -715,7 +723,7 @@
         <div class="chat-section">
             <div class="chat-container">
                 <div class="chat-header">
-                    <h3>Our Space <span class="live-indicator">LIVE</span></h3>
+                    <h3>Live Thread <span class="live-indicator">LIVE</span></h3>
                     <div>
                         <span class="user-count" id="userCount">0 users online</span>
                         <span style="font-size: 12px; color: #818384; margin-left: 12px;">Sort by: Live</span>
@@ -760,10 +768,56 @@
                 { emoji: '🤗', name: 'Hug Award', description: 'Sending you a tight virtual hug' },
                 { emoji: '🥟', name: 'Momo Award', description: 'You seem to be hungry' },
                 { emoji: '😂', name: 'Laugh Award', description: 'Stop this is too funny' },
-                { emoji: '🤝', name: 'Hand Award', description: 'Let's get married' },
+                { emoji: '🤝', name: 'Hand Award', description: 'Can you hold my hand' },
                 { emoji: '🌈', name: 'Aditya Award', description: 'Suddenly Gay' }
             ]
         };
+
+        // Personal surprises system
+        const personalSurprises = [
+            "Thomas is watching this chat! 👀",
+            "Angel wants some cuddles right now! 🤗💕",
+            "There's no word such as MOMOs it's MOMO! 😤🥟",
+            "This is better than any Shah Rukh Khan movie! 🎬✨",
+            "Playing 'Tum Hi Ho' in the background... 🎵💕",
+            "Distance: 1,926 km. Connection: Infinite! ♾️❤️",
+            "Someone's definitely getting butterflies! 🦋",
+            "Mumbai-Dubai express train of love! 🚂💨",
+            "Bollywood directors are taking notes! 📝🎭",
+            "Even Raj and Simran didn't have this much chemistry! 💫"
+        ];
+
+        // Poll system
+        const romanticPolls = [
+            {
+                question: "Would you want to meet in person? 💕",
+                options: ["Yes, I can't wait! 😍", "Maybe someday... 🤔", "Let's take it slow 😊", "Virtual dates are perfect! 💻"]
+            },
+            {
+                question: "I think I'm falling for you... What about you? 💘",
+                options: ["Same here! 😍", "Maybe a little... 😳", "Let's see where this goes 💫", "Friends first! 🤝"]
+            },
+            {
+                question: "What's your favorite thing about our virtual dates? ✨",
+                options: ["Your smile through the screen 😊", "Our conversations 💬", "Watching movies together 🎬", "Everything! 💕"]
+            },
+            {
+                question: "If we met tomorrow, what would you want to do first? 🌟",
+                options: ["Give you a big hug! 🤗", "Hold your hand 🤝", "Go for coffee ☕", "Just talk for hours 💬"]
+            },
+            {
+                question: "Do you think about me when we're not chatting? 💭",
+                options: ["All the time! 😍", "Sometimes... 😊", "When I see something funny 😂", "During movies 🎬"]
+            },
+            {
+                question: "What would make our next virtual date perfect? 💝",
+                options: ["More cuddle awards 🤗", "Cooking together online 👩‍🍳", "Playing games 🎮", "Just being ourselves 💕"]
+            }
+        ];
+
+        let currentPoll = null;
+        let pollVotes = new Map();
+        let hasVotedInCurrentPoll = false;
 
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {
@@ -1049,7 +1103,7 @@
         });
 
         socket.on('award-given', (data) => {
-            showAwardPopup(data.award.name, data.award.emoji, `${data.user} gave an award!`);
+            showAwardPopup(data.award.name, data.award.emoji, `${data.user} gave an award!`, data.award.description);
             triggerRain('wholesome');
         });
 
@@ -1265,19 +1319,20 @@
             }, 4000);
         }
 
-        function showAwardPopup(awardName, awardEmoji, message) {
+        function showAwardPopup(awardName, awardEmoji, message, description) {
             const popup = document.createElement('div');
             popup.className = 'award-popup';
             popup.innerHTML = `
                 <div class="award-emoji">${awardEmoji}</div>
                 <h3>🏆 ${awardName}</h3>
                 <p>${message}</p>
+                <div class="award-description">"${description}"</div>
             `;
             document.body.appendChild(popup);
             
             setTimeout(() => {
                 popup.remove();
-            }, 3000);
+            }, 4000);
         }
 
         function showSurprisePopup(message) {
@@ -1393,9 +1448,9 @@
         socket.on('system-message', (data) => {
             if (data.message.includes('joined the virtual date')) {
                 setTimeout(() => {
-                    addSystemMessage('💕 Welcome to your virtual date Aditi!');
+                    addSystemMessage('💕 Welcome to your real-time virtual date platform!');
                     addSystemMessage('💡 Try typing "heart", "fire", "lol", or "wholesome" for special effects!');
-                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of us');
+                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of you!');
                 }, 2000);
             }
         });
