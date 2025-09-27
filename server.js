@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
         io.emit('new-message', message);
 
         // Check for trigger words and emit effects
-        const triggerWords = ['heart', 'love', 'lol', 'lmao', 'haha', 'cute', 'beautiful', 'amazing', 'wow', 'fire', 'based', 'bc', 'happy', 'nice', 'accha'];
+        const triggerWords = ['heart', 'love', 'lol', 'lmao', 'haha', 'cute', 'beautiful', 'amazing', 'wow', 'fire', 'based', 'cringe', 'poggers', 'nice', 'wholesome'];
         
         const lowerMessage = messageData.content.toLowerCase();
         triggerWords.forEach(trigger => {
@@ -101,19 +101,24 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Handle video play/pause
+    // FIXED: Handle video play/pause with improved sync logic
     socket.on('video-playpause', (data) => {
+        const user = connectedUsers.get(socket.id);
+        
+        // Update server state
         currentVideoState.isPlaying = data.isPlaying;
         currentVideoState.currentTime = data.currentTime;
         currentVideoState.lastUpdate = Date.now();
 
-        const user = connectedUsers.get(socket.id);
+        console.log(`${user?.username} ${data.isPlaying ? 'played' : 'paused'} video at ${data.currentTime}s`);
         
-        // Broadcast to OTHER users (not sender)
+        // Broadcast to OTHER users (not sender) with improved data
         socket.broadcast.emit('video-playpause-sync', {
             isPlaying: data.isPlaying,
             currentTime: data.currentTime,
-            user: user?.username || 'Someone'
+            user: user?.username || 'Someone',
+            userId: data.userId,
+            timestamp: data.timestamp
         });
         
         // System message to everyone
@@ -123,15 +128,22 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Handle video progress updates
+    // Handle video progress updates with throttling
+    let progressUpdateTimeout;
     socket.on('video-progress', (data) => {
-        currentVideoState.currentTime = data.currentTime;
-        currentVideoState.lastUpdate = Date.now();
-        
-        // Broadcast current time to keep everyone in sync
-        socket.broadcast.emit('video-progress-sync', {
-            currentTime: data.currentTime
-        });
+        // Throttle progress updates to prevent spam
+        clearTimeout(progressUpdateTimeout);
+        progressUpdateTimeout = setTimeout(() => {
+            currentVideoState.currentTime = data.currentTime;
+            currentVideoState.lastUpdate = Date.now();
+            
+            // Only broadcast if playing and significant time difference
+            if (currentVideoState.isPlaying) {
+                socket.broadcast.emit('video-progress-sync', {
+                    currentTime: data.currentTime
+                });
+            }
+        }, 500); // Throttle to every 500ms
     });
 
     // Handle video seeking
@@ -146,7 +158,7 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Handle sync request
+    // Handle sync request with better state management
     socket.on('sync-request', (data) => {
         const user = connectedUsers.get(socket.id);
         
@@ -156,6 +168,8 @@ io.on('connection', (socket) => {
             currentVideoState.isPlaying = data.isPlaying;
             currentVideoState.lastUpdate = Date.now();
         }
+        
+        console.log(`Sync requested by ${user?.username}. State: ${currentVideoState.isPlaying ? 'playing' : 'paused'} at ${currentVideoState.currentTime}s`);
         
         io.emit('sync-requested', {
             user: user?.username || 'Someone'
