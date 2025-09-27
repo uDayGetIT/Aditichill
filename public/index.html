@@ -1,794 +1,233 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>r/VirtualDateNight - Mumbai x Dubai</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b1426;
-            color: #d7dadc;
-            overflow-x: hidden;
-        }
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
-        .container {
-            display: flex;
-            height: 100vh;
-            background: #0b1426;
-        }
+// Serve static files
+app.use(express.static('public'));
 
-        .video-section {
-            flex: 2;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-        }
+// Store current video state
+let currentVideoState = {
+    url: '',
+    isPlaying: false,
+    currentTime: 0,
+    lastUpdate: Date.now()
+};
 
-        .subreddit-header {
-            background: #1a1a1b;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            padding: 16px;
-            margin-bottom: 16px;
-            position: relative;
-        }
+let connectedUsers = new Map();
+let messageHistory = [];
 
-        .subreddit-header::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: #ff4500;
-            border-radius: 4px 0 0 4px;
-        }
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-        .subreddit-header h1 {
-            color: #ff4500;
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-
-        .subreddit-meta {
-            color: #818384;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #46d160;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.disconnected {
-            background: #ff4444;
-        }
-
-        .upvote-section {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .arrow {
-            cursor: pointer;
-            font-size: 16px;
-            padding: 4px;
-            border-radius: 2px;
-            transition: all 0.2s;
-        }
-
-        .arrow:hover {
-            background: #343536;
-        }
-
-        .upvoted {
-            color: #ff4500;
-        }
-
-        .video-post {
-            background: #1a1a1b;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            padding: 16px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: #818384;
-        }
-
-        .op-tag {
-            background: #0079d3;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 2px;
-            font-size: 10px;
-        }
-
-        .url-input {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #343536;
-            background: #272729;
-            color: #d7dadc;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-
-        .url-input::placeholder {
-            color: #818384;
-        }
-
-        #videoPlayer {
-            width: 100%;
-            height: 400px;
-            border-radius: 4px;
-            background: #000;
-            margin-bottom: 12px;
-        }
-
-        .video-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: #272729;
-            border-radius: 4px;
-            border: 1px solid #343536;
-        }
-
-        .control-btn {
-            background: #0079d3;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .control-btn:hover {
-            background: #1484d6;
-        }
-
-        .control-btn:disabled {
-            background: #343536;
-            cursor: not-allowed;
-        }
-
-        .chat-section {
-            flex: 1;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-container {
-            background: #1a1a1b;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: #272729;
-            padding: 12px 16px;
-            border-bottom: 1px solid #343536;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chat-header h3 {
-            color: #d7dadc;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .live-indicator {
-            background: #46d160;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        .user-count {
-            color: #818384;
-            font-size: 12px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            max-height: calc(100vh - 200px);
-        }
-
-        .message {
-            margin-bottom: 12px;
-            animation: messageSlide 0.3s ease;
-        }
-
-        @keyframes messageSlide {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .message-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-
-        .username {
-            color: #0079d3;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .username.op {
-            color: #ff4500;
-        }
-
-        .username.competitive {
-            color: #e91e63;
-        }
-
-        .timestamp {
-            color: #818384;
-        }
-
-        .message-content {
-            background: #272729;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            padding: 8px 12px;
-            color: #d7dadc;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .message.user1 .message-content {
-            border-left: 3px solid #0079d3;
-        }
-
-        .message.user2 .message-content {
-            border-left: 3px solid #e91e63;
-        }
-
-        .system-message .message-content {
-            background: #2d5016;
-            border: 1px solid #46d160;
-            color: #46d160;
-            text-align: center;
-            font-style: italic;
-        }
-
-        .typing-indicator {
-            color: #818384;
-            font-style: italic;
-            font-size: 12px;
-            padding: 8px 12px;
-            animation: pulse 1s infinite;
-        }
-
-        .chat-input-container {
-            display: flex;
-            padding: 12px;
-            gap: 8px;
-            border-top: 1px solid #343536;
-            background: #272729;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #343536;
-            background: #1a1a1b;
-            color: #d7dadc;
-            font-size: 14px;
-        }
-
-        .chat-input::placeholder {
-            color: #818384;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: #0079d3;
-        }
-
-        .send-btn {
-            background: #0079d3;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            color: white;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .send-btn:hover {
-            background: #1484d6;
-        }
-
-        .rain-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        .rain-emoji {
-            position: absolute;
-            font-size: 24px;
-            animation: rainFall 3s linear infinite;
-            opacity: 0.8;
-        }
-
-        @keyframes rainFall {
-            0% {
-                transform: translateY(-100px) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        .award-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: #1a1a1b;
-            border: 2px solid #ffd700;
-            color: #d7dadc;
-            padding: 24px;
-            border-radius: 8px;
-            text-align: center;
-            z-index: 10000;
-            animation: popupShow 0.5s ease forwards;
-            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
-        }
-
-        @keyframes popupShow {
-            to {
-                transform: translate(-50%, -50%) scale(1);
-            }
-        }
-
-        .award-popup h3 {
-            color: #ffd700;
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .video-section, .chat-section {
-                flex: none;
-            }
-            
-            #videoPlayer {
-                height: 250px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="rain-container" id="rainContainer"></div>
-    
-    <div class="container">
-        <div class="video-section">
-            <div class="subreddit-header">
-                <h1>r/VirtualDateNight</h1>
-                <div class="subreddit-meta">
-                    <div class="connection-status">
-                        <span class="status-indicator" id="connectionStatus"></span>
-                        <span id="connectionText">Connecting...</span>
-                        <span>📍 Mumbai ↔️ Dubai • 1,926km apart</span>
-                    </div>
-                    <div class="upvote-section">
-                        <span class="arrow upvoted" onclick="giveAward()">▲</span>
-                        <span style="color: #ff4500; font-weight: bold;">∞</span>
-                        <span class="arrow">▼</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="video-post">
-                <div class="post-header">
-                    <span class="op-tag">OP</span>
-                    <span id="currentUser">Posted by u/loading...</span>
-                    <span>•</span>
-                    <span>just now</span>
-                    <span>•</span>
-                    <span>📌 Pinned</span>
-                </div>
-                
-                <input 
-                    type="text" 
-                    class="url-input" 
-                    id="videoUrl" 
-                    placeholder="Drop that YouTube link here... let's watch together! 🎬"
-                >
-                
-                <iframe 
-                    id="videoPlayer"
-                    src=""
-                    frameborder="0" 
-                    allowfullscreen>
-                </iframe>
-                
-                <div class="video-controls">
-                    <button class="control-btn" id="loadBtn" onclick="loadVideo()">Load Video</button>
-                    <button class="control-btn" id="syncBtn" onclick="syncVideo()">Sync 🔄</button>
-                    <button class="control-btn" id="awardBtn" onclick="giveAward()">Give Award 🏆</button>
-                </div>
-            </div>
-        </div>
+    // Handle user joining
+    socket.on('user-join', (userData) => {
+        connectedUsers.set(socket.id, userData);
         
-        <div class="chat-section">
-            <div class="chat-container">
-                <div class="chat-header">
-                    <h3>Live Thread <span class="live-indicator">LIVE</span></h3>
-                    <div>
-                        <span class="user-count" id="userCount">0 users online</span>
-                        <span style="font-size: 12px; color: #818384; margin-left: 12px;">Sort by: Live</span>
-                    </div>
-                </div>
-                
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="typing-indicator" id="typingIndicator" style="display: none;"></div>
-                
-                <div class="chat-input-container">
-                    <input 
-                        type="text" 
-                        class="chat-input" 
-                        id="messageInput" 
-                        placeholder="What are your thoughts?"
-                        onkeypress="handleKeyPress(event)"
-                        oninput="handleTyping()"
-                    >
-                    <button class="send-btn" onclick="sendMessage()">Comment</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Socket.io -->
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        // Get username from URL parameter or prompt
-        const urlParams = new URLSearchParams(window.location.search);
-        let currentUser = urlParams.get('user') || 'ud0_0';
-        
-        // If no user parameter, ask them to choose
-        if (!urlParams.get('user')) {
-            const users = ['ud0_0', 'CompetitiveExpert973'];
-            const choice = prompt('Choose your username:\n1. ud0_0 (Mumbai)\n2. CompetitiveExpert973 (Dubai)\n\nEnter 1 or 2:');
-            currentUser = choice === '2' ? 'CompetitiveExpert973' : 'ud0_0';
-        }
-
-        document.getElementById('currentUser').textContent = `Posted by u/${currentUser}`;
-
-        // Initialize Socket.io
-        const socket = io();
-        let typingTimer;
-
-        // Connection status
-        socket.on('connect', () => {
-            document.getElementById('connectionStatus').classList.remove('disconnected');
-            document.getElementById('connectionText').textContent = 'Connected';
-            
-            // Join the room
-            socket.emit('user-join', {
-                username: currentUser,
-                location: currentUser === 'ud0_0' ? 'Mumbai' : 'Dubai'
-            });
+        // Send welcome message
+        io.emit('system-message', {
+            message: `${userData.username} joined the virtual date! 💕`,
+            timestamp: Date.now()
         });
 
-        socket.on('disconnect', () => {
-            document.getElementById('connectionStatus').classList.add('disconnected');
-            document.getElementById('connectionText').textContent = 'Disconnected';
+        // Send current video state to new user
+        socket.emit('video-sync', currentVideoState);
+
+        // Send message history to new user
+        messageHistory.forEach(msg => {
+            socket.emit('new-message', msg);
         });
 
-        // User count
-        socket.on('user-count', (count) => {
-            document.getElementById('userCount').textContent = `${count} users online`;
-        });
+        // Send user count
+        io.emit('user-count', connectedUsers.size);
+    });
 
-        // System messages
-        socket.on('system-message', (data) => {
-            addSystemMessage(data.message);
-        });
-
-        // Chat messages
-        socket.on('new-message', (messageData) => {
-            if (messageData.username !== currentUser) {
-                addMessage(messageData.content, messageData.username, 
-                    messageData.username === 'ud0_0' ? 'user1' : 'user2');
-            }
-        });
-
-        // Typing indicators
-        let currentlyTyping = new Set();
-
-        socket.on('user-typing', (data) => {
-            const typingIndicator = document.getElementById('typingIndicator');
-            
-            if (data.isTyping) {
-                currentlyTyping.add(data.username);
-            } else {
-                currentlyTyping.delete(data.username);
-            }
-
-            if (currentlyTyping.size > 0) {
-                const userList = Array.from(currentlyTyping).join(', ');
-                typingIndicator.textContent = `${userList} is typing...`;
-                typingIndicator.style.display = 'block';
-            } else {
-                typingIndicator.style.display = 'none';
-            }
-        });
-
-        // Video events
-        socket.on('video-loaded', (data) => {
-            document.getElementById('videoPlayer').src = data.embedUrl;
-            addSystemMessage(`🎬 ${data.user} loaded: "${data.title || 'New video'}"`);
-        });
-
-        socket.on('video-sync', (state) => {
-            // Handle video sync
-            addSystemMessage('🔄 Videos synchronized!');
-        });
-
-        // Effects
-        socket.on('trigger-effect', (data) => {
-            triggerRain(data.trigger);
-        });
-
-        socket.on('award-given', (data) => {
-            showAwardPopup(data.award.name, `${data.user} gave an award!`);
-            triggerRain('wholesome');
-        });
-
-        // Rain effects mapping
-        const rainTriggers = {
-            'heart': '❤️',
-            'love': '💕',
-            'lol': '😂',
-            'lmao': '🤣',
-            'haha': '😆',
-            'cute': '🥰',
-            'beautiful': '✨',
-            'amazing': '🌟',
-            'wow': '😲',
-            'fire': '🔥',
-            'based': '💪',
-            'cringe': '😬',
-            'poggers': '🎉',
-            'nice': '👌',
-            'wholesome': '🤗'
+    // Handle chat messages
+    socket.on('send-message', (messageData) => {
+        const message = {
+            ...messageData,
+            timestamp: Date.now(),
+            id: socket.id
         };
 
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (message) {
-                // Add to own chat immediately
-                addMessage(message, currentUser, currentUser === 'ud0_0' ? 'user1' : 'user2');
-                
-                // Send to server
-                socket.emit('send-message', {
-                    content: message,
-                    username: currentUser
-                });
-                
-                input.value = '';
-                socket.emit('typing-stop');
-            }
+        // Store in history (keep last 50 messages)
+        messageHistory.push(message);
+        if (messageHistory.length > 50) {
+            messageHistory = messageHistory.slice(-50);
         }
 
-        function handleTyping() {
-            socket.emit('typing-start');
-            
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                socket.emit('typing-stop');
-            }, 1000);
-        }
+        // Broadcast to all users
+        io.emit('new-message', message);
 
-        function loadVideo() {
-            const url = document.getElementById('videoUrl').value.trim();
-            if (!url) return;
-
-            if (url.includes('youtube.com/watch?v=') || url.includes('youtu.be/')) {
-                let videoId;
-                if (url.includes('youtu.be/')) {
-                    videoId = url.split('youtu.be/')[1].split('?')[0];
-                } else {
-                    videoId = url.split('v=')[1].split('&')[0];
-                }
-                
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1`;
-                
-                socket.emit('load-video', {
-                    url: url,
-                    embedUrl: embedUrl,
-                    videoId: videoId,
-                    title: 'YouTube Video'
-                });
-            }
-        }
-
-        function syncVideo() {
-            socket.emit('sync-request');
-        }
-
-        function giveAward() {
-            const awards = [
-                { name: 'Wholesome Award', message: 'This date deserves a wholesome award! 🤗' },
-                { name: 'Silver Award', message: 'Have some silver for this amazing setup! 🥈' },
-                { name: 'Heart Eyes Award', message: 'Absolutely adorable date night! 😍' }
-            ];
-            
-            const award = awards[Math.floor(Math.random() * awards.length)];
-            socket.emit('give-award', award);
-        }
-
-        function addMessage(content, username, userClass, isSystem = false) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${userClass || ''} ${isSystem ? 'system-message' : ''}`;
-            
-            if (isSystem) {
-                messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
-            } else {
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                const usernameClass = username === 'ud0_0' ? 'op' : username === 'CompetitiveExpert973' ? 'competitive' : '';
-                
-                messageDiv.innerHTML = `
-                    <div class="message-header">
-                        <span class="username ${usernameClass}">${username}</span>
-                        <span class="timestamp">${timeStr}</span>
-                    </div>
-                    <div class="message-content">${content}</div>
-                `;
-            }
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function addSystemMessage(text) {
-            addMessage(text, 'System', '', true);
-        }
-
-        function triggerRain(type) {
-            const emoji = rainTriggers[type] || '✨';
-            const rainContainer = document.getElementById('rainContainer');
-            
-            for (let i = 0; i < 12; i++) {
-                setTimeout(() => {
-                    createRainDrop(emoji);
-                }, i * 150);
-            }
-        }
-
-        function createRainDrop(emoji) {
-            const rainContainer = document.getElementById('rainContainer');
-            const drop = document.createElement('div');
-            drop.className = 'rain-emoji';
-            drop.textContent = emoji;
-            drop.style.left = Math.random() * 100 + 'vw';
-            drop.style.animationDuration = (Math.random() * 2 + 2) + 's';
-            rainContainer.appendChild(drop);
-            
-            setTimeout(() => {
-                drop.remove();
-            }, 4000);
-        }
-
-        function showAwardPopup(awardName, message) {
-            const popup = document.createElement('div');
-            popup.className = 'award-popup';
-            popup.innerHTML = `
-                <h3>🏆 ${awardName}</h3>
-                <p>${message}</p>
-            `;
-            document.body.appendChild(popup);
-            
-            setTimeout(() => {
-                popup.remove();
-            }, 3000);
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        // Initialize welcome messages after connection
-        socket.on('system-message', (data) => {
-            if (data.message.includes('joined the virtual date')) {
-                setTimeout(() => {
-                    addSystemMessage('💕 Welcome to your real-time virtual date platform!');
-                    addSystemMessage('💡 Try typing "heart", "fire", "lol", or "wholesome" for special effects!');
-                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of you!');
-                }, 2000);
+        // Check for trigger words and emit effects
+        const triggerWords = ['heart', 'love', 'lol', 'lmao', 'haha', 'cute', 'beautiful', 'amazing', 'wow', 'fire', 'based', 'cringe', 'poggers', 'nice', 'wholesome'];
+        
+        const lowerMessage = messageData.content.toLowerCase();
+        triggerWords.forEach(trigger => {
+            if (lowerMessage.includes(trigger)) {
+                io.emit('trigger-effect', { trigger, user: messageData.username });
             }
         });
-    </script>
-</body>
-</html>
+    });
+
+    // Handle video loading
+    socket.on('load-video', (videoData) => {
+        currentVideoState = {
+            url: videoData.url,
+            embedUrl: videoData.embedUrl,
+            isPlaying: false,
+            currentTime: 0,
+            lastUpdate: Date.now()
+        };
+
+        const user = connectedUsers.get(socket.id);
+        io.emit('video-loaded', {
+            ...videoData,
+            user: user?.username || 'Someone'
+        });
+
+        io.emit('video-sync', currentVideoState);
+    });
+
+    // Handle video play/pause
+    socket.on('video-playpause', (data) => {
+        currentVideoState.isPlaying = data.isPlaying;
+        currentVideoState.currentTime = data.currentTime;
+        currentVideoState.lastUpdate = Date.now();
+
+        const user = connectedUsers.get(socket.id);
+        
+        // Broadcast to ALL users including sender
+        io.emit('video-playpause-sync', {
+            isPlaying: data.isPlaying,
+            currentTime: data.currentTime,
+            user: user?.username || 'Someone'
+        });
+        
+        // System message
+        io.emit('system-message', {
+            message: `${user?.username || 'Someone'} ${data.isPlaying ? 'played ▶️' : 'paused ⏸️'} the video`,
+            timestamp: Date.now()
+        });
+    });
+
+    // Handle video progress updates
+    socket.on('video-progress', (data) => {
+        currentVideoState.currentTime = data.currentTime;
+        currentVideoState.lastUpdate = Date.now();
+        
+        // Broadcast current time to keep everyone in sync
+        socket.broadcast.emit('video-progress-sync', {
+            currentTime: data.currentTime
+        });
+    });
+
+    // Handle video seeking
+    socket.on('video-seek', (data) => {
+        currentVideoState.currentTime = data.currentTime;
+        currentVideoState.lastUpdate = Date.now();
+
+        const user = connectedUsers.get(socket.id);
+        socket.broadcast.emit('video-seek', {
+            currentTime: data.currentTime,
+            user: user?.username || 'Someone'
+        });
+    });
+
+    // Handle sync request
+    socket.on('sync-request', () => {
+        const user = connectedUsers.get(socket.id);
+        io.emit('sync-requested', {
+            user: user?.username || 'Someone'
+        });
+        
+        // Send current state to everyone
+        io.emit('video-sync', currentVideoState);
+    });
+
+    // Handle awards
+    socket.on('give-award', (awardData) => {
+        const user = connectedUsers.get(socket.id);
+        io.emit('award-given', {
+            award: awardData,
+            user: user?.username || 'Someone'
+        });
+    });
+
+    // Handle surprise me button
+    socket.on('surprise-me', () => {
+        const user = connectedUsers.get(socket.id);
+        const surprises = [
+            "It's not MOMOS it's MOMO! 😤",
+            "Thomas is watching this chat right now 👀",
+            `${user?.username === 'ud0_0' ? 'Mumbai' : 'Dubai'} gang represent! 🎉`,
+            "This date is better than any Bollywood movie! 🎬",
+            "Plot twist: You're both falling for each other! 💕",
+            "Fun fact: You've both been smiling at your screens! 😊",
+            "Breaking news: This is the cutest virtual date ever! 📰",
+            "Thomas approved this message ✅",
+            "MOMO energy is strong with this one! ⚡",
+            "Distance: 1,926 km. Connection: Infinite! ♾️"
+        ];
+        
+        const randomSurprise = surprises[Math.floor(Math.random() * surprises.length)];
+        
+        io.emit('surprise-popup', {
+            message: randomSurprise,
+            user: user?.username || 'Someone'
+        });
+        
+        io.emit('trigger-effect', { trigger: 'wholesome', user: user?.username });
+    });
+
+    // Handle typing indicators
+    socket.on('typing-start', () => {
+        const user = connectedUsers.get(socket.id);
+        if (user) {
+            socket.broadcast.emit('user-typing', {
+                username: user.username,
+                isTyping: true
+            });
+        }
+    });
+
+    socket.on('typing-stop', () => {
+        const user = connectedUsers.get(socket.id);
+        if (user) {
+            socket.broadcast.emit('user-typing', {
+                username: user.username,
+                isTyping: false
+            });
+        }
+    });
+
+    // Handle disconnect
+    socket.on('disconnect', () => {
+        const user = connectedUsers.get(socket.id);
+        if (user) {
+            io.emit('system-message', {
+                message: `${user.username} left the date 😢`,
+                timestamp: Date.now()
+            });
+        }
+        
+        connectedUsers.delete(socket.id);
+        io.emit('user-count', connectedUsers.size);
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`🚀 Virtual Date Server running on port ${PORT}`);
+    console.log(`💕 Your date platform is ready at http://localhost:${PORT}`);
+});
