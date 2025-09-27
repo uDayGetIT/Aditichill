@@ -18,6 +18,7 @@ app.use(express.static('public'));
 // Store current video state
 let currentVideoState = {
     url: '',
+    videoId: '',
     isPlaying: false,
     currentTime: 0,
     lastUpdate: Date.now()
@@ -40,7 +41,9 @@ io.on('connection', (socket) => {
         });
 
         // Send current video state to new user
-        socket.emit('video-sync', currentVideoState);
+        if (currentVideoState.videoId) {
+            socket.emit('video-sync', currentVideoState);
+        }
 
         // Send message history to new user
         messageHistory.forEach(msg => {
@@ -83,7 +86,7 @@ io.on('connection', (socket) => {
     socket.on('load-video', (videoData) => {
         currentVideoState = {
             url: videoData.url,
-            embedUrl: videoData.embedUrl,
+            videoId: videoData.videoId,
             isPlaying: false,
             currentTime: 0,
             lastUpdate: Date.now()
@@ -94,8 +97,6 @@ io.on('connection', (socket) => {
             ...videoData,
             user: user?.username || 'Someone'
         });
-
-        io.emit('video-sync', currentVideoState);
     });
 
     // Handle video play/pause
@@ -106,14 +107,14 @@ io.on('connection', (socket) => {
 
         const user = connectedUsers.get(socket.id);
         
-        // Broadcast to ALL users including sender
-        io.emit('video-playpause-sync', {
+        // Broadcast to OTHER users (not sender)
+        socket.broadcast.emit('video-playpause-sync', {
             isPlaying: data.isPlaying,
             currentTime: data.currentTime,
             user: user?.username || 'Someone'
         });
         
-        // System message
+        // System message to everyone
         io.emit('system-message', {
             message: `${user?.username || 'Someone'} ${data.isPlaying ? 'played ▶️' : 'paused ⏸️'} the video`,
             timestamp: Date.now()
@@ -144,8 +145,16 @@ io.on('connection', (socket) => {
     });
 
     // Handle sync request
-    socket.on('sync-request', () => {
+    socket.on('sync-request', (data) => {
         const user = connectedUsers.get(socket.id);
+        
+        // Update current state if provided
+        if (data) {
+            currentVideoState.currentTime = data.currentTime;
+            currentVideoState.isPlaying = data.isPlaying;
+            currentVideoState.lastUpdate = Date.now();
+        }
+        
         io.emit('sync-requested', {
             user: user?.username || 'Someone'
         });
