@@ -105,10 +105,29 @@ io.on('connection', (socket) => {
         currentVideoState.lastUpdate = Date.now();
 
         const user = connectedUsers.get(socket.id);
-        socket.broadcast.emit('video-playpause', {
+        
+        // Broadcast to ALL users including sender
+        io.emit('video-playpause-sync', {
             isPlaying: data.isPlaying,
             currentTime: data.currentTime,
             user: user?.username || 'Someone'
+        });
+        
+        // System message
+        io.emit('system-message', {
+            message: `${user?.username || 'Someone'} ${data.isPlaying ? 'played ▶️' : 'paused ⏸️'} the video`,
+            timestamp: Date.now()
+        });
+    });
+
+    // Handle video progress updates
+    socket.on('video-progress', (data) => {
+        currentVideoState.currentTime = data.currentTime;
+        currentVideoState.lastUpdate = Date.now();
+        
+        // Broadcast current time to keep everyone in sync
+        socket.broadcast.emit('video-progress-sync', {
+            currentTime: data.currentTime
         });
     });
 
@@ -142,6 +161,32 @@ io.on('connection', (socket) => {
             award: awardData,
             user: user?.username || 'Someone'
         });
+    });
+
+    // Handle surprise me button
+    socket.on('surprise-me', () => {
+        const user = connectedUsers.get(socket.id);
+        const surprises = [
+            "It's not MOMOS it's MOMO! 😤",
+            "Thomas is watching this chat right now 👀",
+            `${user?.username === 'ud0_0' ? 'Mumbai' : 'Dubai'} gang represent! 🎉`,
+            "This date is better than any Bollywood movie! 🎬",
+            "Plot twist: You're both falling for each other! 💕",
+            "Fun fact: You've both been smiling at your screens! 😊",
+            "Breaking news: This is the cutest virtual date ever! 📰",
+            "Thomas approved this message ✅",
+            "MOMO energy is strong with this one! ⚡",
+            "Distance: 1,926 km. Connection: Infinite! ♾️"
+        ];
+        
+        const randomSurprise = surprises[Math.floor(Math.random() * surprises.length)];
+        
+        io.emit('surprise-popup', {
+            message: randomSurprise,
+            user: user?.username || 'Someone'
+        });
+        
+        io.emit('trigger-effect', { trigger: 'wholesome', user: user?.username });
     });
 
     // Handle typing indicators
