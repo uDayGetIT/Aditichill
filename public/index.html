@@ -773,7 +773,7 @@
             ]
         };
 
-        // FIXED: Added personalSurprises array
+        // Personal surprise messages
         const personalSurprises = [
             "You're absolutely amazing and this virtual date is so much fun! 💕",
             "I love spending time with you like this - distance means nothing! 🌟",
@@ -828,19 +828,15 @@
             const isPaused = event.data === YT.PlayerState.PAUSED;
             
             if (isPlaying || isPaused) {
-                // Add small delay to ensure state is stable
-                setTimeout(() => {
-                    isVideoPlaying = isPlaying;
-                    updatePlayPauseButton();
-                    
-                    // Only emit if this is a user-initiated change
-                    socket.emit('video-playpause', {
-                        isPlaying: isPlaying,
-                        currentTime: player.getCurrentTime(),
-                        timestamp: Date.now(),
-                        userId: currentUser // Add user identifier
-                    });
-                }, 100);
+                isVideoPlaying = isPlaying;
+                updatePlayPauseButton();
+                
+                // Only emit if this is a user-initiated change
+                socket.emit('video-playpause', {
+                    isPlaying: isPlaying,
+                    currentTime: player.getCurrentTime(),
+                    timestamp: Date.now()
+                });
             }
         }
 
@@ -981,4 +977,478 @@
             addSystemMessage(data.message);
         });
 
-        //
+        // Chat messages
+        socket.on('new-message', (messageData) => {
+            if (messageData.username !== currentUser) {
+                addMessage(messageData.content, messageData.username, 
+                    messageData.username === 'ud0_0' ? 'user1' : 'user2');
+            }
+        });
+
+        // Typing indicators
+        let currentlyTyping = new Set();
+
+        socket.on('user-typing', (data) => {
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            if (data.isTyping) {
+                currentlyTyping.add(data.username);
+            } else {
+                currentlyTyping.delete(data.username);
+            }
+
+            if (currentlyTyping.size > 0) {
+                const userList = Array.from(currentlyTyping).join(', ');
+                typingIndicator.textContent = `${userList} is typing...`;
+                typingIndicator.style.display = 'block';
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+        });
+
+        // Video events
+        socket.on('video-loaded', (data) => {
+            currentVideoId = data.videoId;
+            
+            // Destroy existing player
+            if (player) {
+                player.destroy();
+            }
+            
+            // Create new player
+            player = new YT.Player('videoPlayer', {
+                height: '400',
+                width: '100%',
+                videoId: currentVideoId,
+                playerVars: {
+                    autoplay: 0,
+                    controls: 1,
+                    rel: 0,
+                    modestbranding: 1
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+            
+            addSystemMessage(`🎬 ${data.user} loaded: "${data.title || 'New video'}"`);
+        });
+
+        socket.on('video-playpause-sync', (data) => {
+            if (!player || !isPlayerReady) return;
+            
+            isVideoPlaying = data.isPlaying;
+            updatePlayPauseButton();
+            
+            // Ignore the next state change to prevent infinite loop
+            ignoreNextStateChange = true;
+            
+            // Sync time if there's a significant difference
+            const currentTime = player.getCurrentTime();
+            if (Math.abs(currentTime - data.currentTime) > 1.5) {
+                player.seekTo(data.currentTime, true);
+            }
+            
+            if (data.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+        });
+
+        socket.on('video-progress-sync', (data) => {
+            if (!player || !isPlayerReady) return;
+            
+            // Only sync if time difference is significant
+            const currentTime = player.getCurrentTime();
+            if (Math.abs(currentTime - data.currentTime) > 2) {
+                player.seekTo(data.currentTime, true);
+            }
+        });
+
+        socket.on('video-sync', (state) => {
+            if (!player || !isPlayerReady || !state.videoId) return;
+            
+            // Load video if different
+            if (currentVideoId !== state.videoId) {
+                currentVideoId = state.videoId;
+                player.loadVideoById(state.videoId);
+            }
+            
+            // Sync play state and time
+            ignoreNextStateChange = true;
+            if (state.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+            
+            if (state.currentTime) {
+                player.seekTo(state.currentTime, true);
+            }
+            
+            addSystemMessage('🔄 Videos synchronized!');
+        });
+
+        // Effects
+        socket.on('trigger-effect', (data) => {
+            triggerRain(data.trigger);
+        });
+
+        socket.on('award-given', (data) => {
+            // Show award description in popup
+            showAwardPopup(data.award.name, data.award.emoji, `${data.user} gave an award!`, data.award.description);
+            triggerRain('wholesome');
+        });
+
+        socket.on('surprise-popup', (data) => {
+            showSurprisePopup(data.message);
+            triggerRain('wholesome');
+        });
+
+        // Poll events
+        socket.on('poll-started', (pollData) => {
+            currentPoll = pollData;
+            pollVotes.clear();
+            hasVotedInCurrentPoll = false;
+            showPoll(pollData);
+            addSystemMessage('💝 A new poll has started! Check it out!');
+        });
+
+        socket.on('poll-vote', (voteData) => {
+            pollVotes.set(voteData.user, voteData.option);
+            updatePollResults();
+        });
+
+        socket.on('poll-ended', () => {
+            setTimeout(() => {
+                document.getElementById('pollModal').classList.remove('show');
+                currentPoll = null;
+            }, 5000); // Show results for 5 seconds
+        });
+
+        // Rain effects mapping
+        const rainTriggers = {
+            'heart': '❤️',
+            'love': '💕',
+            'lol': '😂',
+            'lmao': '🤣',
+            'haha': '😆',
+            'cute': '🥰',
+            'beautiful': '✨',
+            'amazing': '🌟',
+            'wow': '😲',
+            'fire': '🔥',
+            'based': '💪',
+            'cringe': '😬',
+            'poggers': '🎉',
+            'nice': '👌',
+            'wholesome': '🤗'
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add to own chat immediately
+                addMessage(message, currentUser, currentUser === 'ud0_0' ? 'user1' : 'user2');
+                
+                // Send to server
+                socket.emit('send-message', {
+                    content: message,
+                    username: currentUser
+                });
+                
+                input.value = '';
+                socket.emit('typing-stop');
+            }
+        }
+
+        function handleTyping() {
+            socket.emit('typing-start');
+            
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                socket.emit('typing-stop');
+            }, 1000);
+        }
+
+        function loadVideo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) return;
+
+            if (url.includes('youtube.com/watch?v=') || url.includes('youtu.be/')) {
+                let videoId;
+                if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1].split('?')[0];
+                } else {
+                    videoId = url.split('v=')[1].split('&')[0];
+                }
+                
+                socket.emit('load-video', {
+                    url: url,
+                    videoId: videoId,
+                    title: 'YouTube Video'
+                });
+            }
+        }
+
+        function togglePlayPause() {
+            if (!player || !isPlayerReady) {
+                alert('Please load a video first!');
+                return;
+            }
+            
+            const playerState = player.getPlayerState();
+            const shouldPlay = playerState !== YT.PlayerState.PLAYING;
+            
+            isVideoPlaying = shouldPlay;
+            updatePlayPauseButton();
+            
+            socket.emit('video-playpause', {
+                isPlaying: shouldPlay,
+                currentTime: player.getCurrentTime(),
+                timestamp: Date.now()
+            });
+            
+            // Control local player
+            if (shouldPlay) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+        }
+
+        function updatePlayPauseButton() {
+            const btn = document.getElementById('playPauseBtn');
+            btn.textContent = isVideoPlaying ? '⏸️ Pause' : '▶️ Play';
+        }
+
+        function syncVideo() {
+            if (!player || !isPlayerReady) {
+                addSystemMessage('⚠️ Please load a video first!');
+                return;
+            }
+            
+            socket.emit('sync-request', {
+                currentTime: player.getCurrentTime(),
+                isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING
+            });
+        }
+
+        function surpriseMe() {
+            const randomSurprise = personalSurprises[Math.floor(Math.random() * personalSurprises.length)];
+            socket.emit('surprise-me', { message: randomSurprise });
+        }
+
+        function addMessage(content, username, userClass, isSystem = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${userClass || ''} ${isSystem ? 'system-message' : ''}`;
+            
+            if (isSystem) {
+                messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            } else {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const usernameClass = username === 'ud0_0' ? 'op' : username === 'CompetitiveExpert973' ? 'competitive' : '';
+                
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="username ${usernameClass}">${username}</span>
+                        <span class="timestamp">${timeStr}</span>
+                    </div>
+                    <div class="message-content">${content}</div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv; // Return the element so it can be removed later
+        }
+
+        function addSystemMessage(text) {
+            const messageDiv = addMessage(text, 'System', '', true);
+            
+            // Remove the system message after 2.5 seconds
+            setTimeout(() => {
+                if (messageDiv && messageDiv.parentNode) {
+                    messageDiv.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 2000);
+        }
+
+        function triggerRain(type) {
+            const emoji = rainTriggers[type] || '✨';
+            const rainContainer = document.getElementById('rainContainer');
+            
+            for (let i = 0; i < 12; i++) {
+                setTimeout(() => {
+                    createRainDrop(emoji);
+                }, i * 150);
+            }
+        }
+
+        function createRainDrop(emoji) {
+            const rainContainer = document.getElementById('rainContainer');
+            const drop = document.createElement('div');
+            drop.className = 'rain-emoji';
+            drop.textContent = emoji;
+            drop.style.left = Math.random() * 100 + 'vw';
+            drop.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            rainContainer.appendChild(drop);
+            
+            setTimeout(() => {
+                drop.remove();
+            }, 4000);
+        }
+
+        function showAwardPopup(awardName, awardEmoji, message, description) {
+            const popup = document.createElement('div');
+            popup.className = 'award-popup';
+            popup.innerHTML = `
+                <div class="award-emoji">${awardEmoji}</div>
+                <h3>🏆 ${awardName}</h3>
+                <p>${message}</p>
+                <div class="award-description">"${description}"</div>
+            `;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 4000);
+        }
+
+        function showSurprisePopup(message) {
+            const popup = document.createElement('div');
+            popup.className = 'award-popup';
+            popup.style.borderColor = '#ff4500';
+            popup.innerHTML = `
+                <h3>✨ Surprise! ✨</h3>
+                <p>${message}</p>
+            `;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 4000);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Poll functions
+        function showPoll(pollData) {
+            document.getElementById('pollQuestion').textContent = pollData.question;
+            
+            const optionsContainer = document.getElementById('pollOptions');
+            optionsContainer.innerHTML = '';
+            
+            pollData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'poll-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => votePoll(index, option);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('pollResults').style.display = 'none';
+            document.getElementById('pollModal').classList.add('show');
+        }
+
+        function votePoll(optionIndex, optionText) {
+            if (hasVotedInCurrentPoll) return;
+            
+            hasVotedInCurrentPoll = true;
+            
+            // Mark as voted
+            document.querySelectorAll('.poll-option')[optionIndex].classList.add('voted');
+            document.querySelectorAll('.poll-option').forEach(opt => opt.style.pointerEvents = 'none');
+            
+            // Send vote
+            socket.emit('poll-vote', {
+                pollId: currentPoll.id,
+                option: optionText,
+                user: currentUser
+            });
+            
+            // Show results after a moment
+            setTimeout(() => {
+                document.getElementById('pollOptions').style.display = 'none';
+                document.getElementById('pollResults').style.display = 'block';
+                updatePollResults();
+            }, 1000);
+        }
+
+        function updatePollResults() {
+            if (!currentPoll) return;
+            
+            const resultsContainer = document.getElementById('pollResults');
+            resultsContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #46d160;">Results so far:</h3>';
+            
+            const totalVotes = pollVotes.size;
+            const voteCounts = new Map();
+            
+            // Count votes
+            pollVotes.forEach(option => {
+                voteCounts.set(option, (voteCounts.get(option) || 0) + 1);
+            });
+            
+            // Display results
+            currentPoll.options.forEach(option => {
+                const count = voteCounts.get(option) || 0;
+                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'poll-result';
+                resultDiv.innerHTML = `
+                    <div>
+                        <div>${option}</div>
+                        <div class="poll-result-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div style="color: #ff4500; font-weight: bold;">${count} vote${count !== 1 ? 's' : ''}</div>
+                `;
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            if (totalVotes >= 2) {
+                setTimeout(() => {
+                    socket.emit('poll-end');
+                }, 3000);
+            }
+        }
+
+        // Initialize awards when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAwards);
+        } else {
+            initializeAwards();
+        }
+
+        // Initialize welcome messages after connection
+        socket.on('system-message', (data) => {
+            if (data.message.includes('joined the virtual date')) {
+                setTimeout(() => {
+                    addSystemMessage('💕 Welcome to your real-time virtual date platform!');
+                    addSystemMessage('💡 Try typing "heart", "fire", "lol", or "wholesome" for special effects!');
+                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of you!');
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
