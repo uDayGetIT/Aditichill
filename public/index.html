@@ -312,6 +312,22 @@
             color: #46d160;
             text-align: center;
             font-style: italic;
+            animation: flashMessage 2s ease-in-out forwards;
+        }
+
+        @keyframes flashMessage {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            70% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
 
         .typing-indicator {
@@ -362,6 +378,121 @@
 
         .send-btn:hover {
             background: #1484d6;
+        }
+
+        /* Award Modal Styles */
+        .award-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        }
+
+        .award-modal.show {
+            display: flex;
+        }
+
+        .award-modal-content {
+            background: #1a1a1b;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .award-modal h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .award-categories {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: #343536;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: #d7dadc;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .category-btn.active {
+            background: #ff4500;
+            color: white;
+        }
+
+        .awards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .award-item {
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .award-item:hover {
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .award-emoji {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .award-name {
+            color: #d7dadc;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .award-description {
+            color: #818384;
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #818384;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #d7dadc;
         }
 
         .rain-container {
@@ -420,6 +551,11 @@
             font-size: 16px;
         }
 
+        .award-popup .award-emoji {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.6; }
@@ -439,11 +575,33 @@
             #videoPlayer {
                 height: 250px;
             }
+            
+            .awards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
     <div class="rain-container" id="rainContainer"></div>
+    
+    <!-- Award Modal -->
+    <div class="award-modal" id="awardModal">
+        <div class="award-modal-content">
+            <button class="modal-close" onclick="closeAwardModal()">&times;</button>
+            <h2>🏆 Choose an Award</h2>
+            
+            <div class="award-categories">
+                <button class="category-btn active" onclick="filterAwards('all')">All</button>
+                <button class="category-btn" onclick="filterAwards('romantic')">💕 Romantic</button>
+                <button class="category-btn" onclick="filterAwards('funny')">😂 Funny</button>
+                <button class="category-btn" onclick="filterAwards('cute')">🥰 Cute</button>
+                <button class="category-btn" onclick="filterAwards('special')">✨ Special</button>
+            </div>
+            
+            <div class="awards-grid" id="awardsGrid"></div>
+        </div>
+    </div>
     
     <div class="container">
         <div class="video-section">
@@ -457,7 +615,7 @@
                         <span style="margin-left: 12px;" id="timeDisplay">🕐 Loading times...</span>
                     </div>
                     <div class="upvote-section">
-                        <span class="arrow upvoted" onclick="giveAward()">▲</span>
+                        <span class="arrow upvoted" onclick="openAwardModal()">▲</span>
                         <span style="color: #ff4500; font-weight: bold;">∞</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -481,19 +639,14 @@
                     placeholder="Drop that YouTube link here... let's watch together! 🎬"
                 >
                 
-                <iframe 
-                    id="videoPlayer"
-                    src=""
-                    frameborder="0" 
-                    allowfullscreen>
-                </iframe>
+                <div id="videoPlayer"></div>
                 
                 <div class="video-controls">
                     <button class="control-btn" id="loadBtn" onclick="loadVideo()">Load Video</button>
                     <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
                     <button class="control-btn" id="syncBtn" onclick="syncVideo()">Sync 🔄</button>
                     <button class="control-btn" id="surpriseBtn" onclick="surpriseMe()">Surprise Me! ✨</button>
-                    <button class="control-btn" id="awardBtn" onclick="giveAward()">Give Award 🏆</button>
+                    <button class="control-btn" id="awardBtn" onclick="openAwardModal()">Give Award 🏆</button>
                 </div>
             </div>
         </div>
@@ -526,12 +679,158 @@
         </div>
     </div>
 
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         // Global video state
         let isVideoPlaying = false;
-        let videoElement = null;
+        let player = null;
+        let currentVideoId = null;
+        let isPlayerReady = false;
+        let ignoreNextStateChange = false;
+
+        // Award system
+        const awards = {
+            romantic: [
+                { emoji: '💕', name: 'Love Award', description: 'You make my heart skip a beat!' },
+                { emoji: '💖', name: 'Heart Eyes', description: 'Absolutely smitten!' },
+                { emoji: '🌹', name: 'Rose Gold', description: 'Beautiful like a rose' },
+                { emoji: '💐', name: 'Bouquet', description: 'A virtual bouquet for you' },
+                { emoji: '💎', name: 'Diamond Heart', description: 'You are precious to me' },
+                { emoji: '🥰', name: 'Lovey Dovey', description: 'So adorable!' },
+                { emoji: '😍', name: 'Heart Eyes', description: 'Swooning over here!' },
+                { emoji: '💏', name: 'Kiss Kiss', description: 'Sending virtual kisses' },
+                { emoji: '💌', name: 'Love Letter', description: 'Written with love' },
+                { emoji: '🦋', name: 'Butterflies', description: 'You give me butterflies' },
+                { emoji: '✨', name: 'Sparkling', description: 'You make everything sparkle' },
+                { emoji: '🌟', name: 'My Star', description: 'You are my shining star' }
+            ],
+            funny: [
+                { emoji: '😂', name: 'Dead', description: 'I am literally dying!' },
+                { emoji: '🤣', name: 'ROFL', description: 'Rolling on the floor laughing' },
+                { emoji: '😭', name: 'Crying Laughing', description: 'Tears of joy!' },
+                { emoji: '🤡', name: 'Clown Award', description: 'You are hilarious!' },
+                { emoji: '🍕', name: 'Pizza Time', description: 'As essential as pizza' },
+                { emoji: '🤪', name: 'Crazy', description: 'Absolutely bonkers!' },
+                { emoji: '👻', name: 'Spooky Funny', description: 'Boo-tifully funny' },
+                { emoji: '🤠', name: 'Yeehaw', description: 'Howdy partner, that was funny!' },
+                { emoji: '🦄', name: 'Unicorn Rare', description: 'Rare level of humor' },
+                { emoji: '🐸', name: 'Frog Vibes', description: 'Ribbit-ing humor' },
+                { emoji: '🎭', name: 'Comedy Gold', description: 'Pure comedy genius' },
+                { emoji: '🍌', name: 'Banana Split', description: 'Split my sides laughing' }
+            ],
+            cute: [
+                { emoji: '🥺', name: 'Puppy Eyes', description: 'So incredibly cute!' },
+                { emoji: '🐱', name: 'Kitten', description: 'Cute as a kitten' },
+                { emoji: '🐶', name: 'Puppy', description: 'Puppy level cuteness' },
+                { emoji: '🧸', name: 'Teddy Bear', description: 'Huggable and cute' },
+                { emoji: '🍯', name: 'Honey', description: 'Sweet as honey' },
+                { emoji: '🌸', name: 'Cherry Blossom', description: 'Delicate and beautiful' },
+                { emoji: '🦔', name: 'Hedgehog', description: 'Prickly but adorable' },
+                { emoji: '🐣', name: 'Baby Chick', description: 'Newly hatched cuteness' },
+                { emoji: '🍓', name: 'Strawberry', description: 'Berry cute!' },
+                { emoji: '🎀', name: 'Pretty Bow', description: 'Tied up in cuteness' },
+                { emoji: '☁️', name: 'Fluffy Cloud', description: 'Soft and dreamy' },
+                { emoji: '🌈', name: 'Rainbow', description: 'Colorfully adorable' }
+            ],
+            special: [
+                { emoji: '👑', name: 'Crown Royal', description: 'You are royalty!' },
+                { emoji: '🏆', name: 'Champion', description: 'Absolute champion!' },
+                { emoji: '🎯', name: 'Bullseye', description: 'Perfect shot!' },
+                { emoji: '🚀', name: 'To The Moon', description: 'Out of this world!' },
+                { emoji: '⚡', name: 'Lightning', description: 'Electrifying!' },
+                { emoji: '🔥', name: 'Fire Award', description: 'This is straight fire!' },
+                { emoji: '💯', name: 'Hundred', description: '100% perfect!' },
+                { emoji: '🎪', name: 'Circus Master', description: 'Master of entertainment' },
+                { emoji: '🎨', name: 'Artistic', description: 'Pure artistry!' },
+                { emoji: '🎵', name: 'Music to Ears', description: 'Music to my ears' },
+                { emoji: '🌍', name: 'World Class', description: 'World-class quality' },
+                { emoji: '💫', name: 'Shooting Star', description: 'Make a wish!' }
+            ]
+        };
+
+        // YouTube API ready callback
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+        }
+
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            console.log('Player Ready');
+            updatePlayPauseButton();
+        }
+
+        function onPlayerStateChange(event) {
+            if (ignoreNextStateChange) {
+                ignoreNextStateChange = false;
+                return;
+            }
+
+            const isPlaying = event.data === YT.PlayerState.PLAYING;
+            const isPaused = event.data === YT.PlayerState.PAUSED;
+            
+            if (isPlaying || isPaused) {
+                isVideoPlaying = isPlaying;
+                updatePlayPauseButton();
+                
+                // Only emit if this is a user-initiated change
+                socket.emit('video-playpause', {
+                    isPlaying: isPlaying,
+                    currentTime: player.getCurrentTime(),
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        // Initialize awards grid
+        function initializeAwards() {
+            const grid = document.getElementById('awardsGrid');
+            const allAwards = [...awards.romantic, ...awards.funny, ...awards.cute, ...awards.special];
+            
+            allAwards.forEach((award, index) => {
+                const category = Object.keys(awards).find(cat => awards[cat].includes(award));
+                const div = document.createElement('div');
+                div.className = `award-item ${category}`;
+                div.innerHTML = `
+                    <span class="award-emoji">${award.emoji}</span>
+                    <div class="award-name">${award.name}</div>
+                    <div class="award-description">${award.description}</div>
+                `;
+                div.onclick = () => giveSelectedAward(award);
+                grid.appendChild(div);
+            });
+        }
+
+        function openAwardModal() {
+            document.getElementById('awardModal').classList.add('show');
+        }
+
+        function closeAwardModal() {
+            document.getElementById('awardModal').classList.remove('show');
+        }
+
+        function filterAwards(category) {
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide awards
+            const awards = document.querySelectorAll('.award-item');
+            awards.forEach(award => {
+                if (category === 'all' || award.classList.contains(category)) {
+                    award.style.display = 'block';
+                } else {
+                    award.style.display = 'none';
+                }
+            });
+        }
+
+        function giveSelectedAward(award) {
+            socket.emit('give-award', award);
+            closeAwardModal();
+        }
 
         // Update time display
         function updateTimeDisplay() {
@@ -559,6 +858,7 @@
         // Update time every second
         setInterval(updateTimeDisplay, 1000);
         updateTimeDisplay();
+
         // Get username from URL parameter or prompt
         const urlParams = new URLSearchParams(window.location.search);
         let currentUser = urlParams.get('user') || 'ud0_0';
@@ -576,6 +876,11 @@
         const socket = io();
         let typingTimer;
         let currentVideoUrl = '';
+
+        // Initialize awards when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAwards();
+        });
 
         // Connection status
         socket.on('connect', () => {
@@ -635,44 +940,80 @@
 
         // Video events
         socket.on('video-loaded', (data) => {
-            document.getElementById('videoPlayer').src = data.embedUrl;
-            currentVideoUrl = data.embedUrl;
+            currentVideoId = data.videoId;
+            
+            // Destroy existing player
+            if (player) {
+                player.destroy();
+            }
+            
+            // Create new player
+            player = new YT.Player('videoPlayer', {
+                height: '400',
+                width: '100%',
+                videoId: currentVideoId,
+                playerVars: {
+                    autoplay: 0,
+                    controls: 1,
+                    rel: 0,
+                    modestbranding: 1
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+            
             addSystemMessage(`🎬 ${data.user} loaded: "${data.title || 'New video'}"`);
         });
 
         socket.on('video-playpause-sync', (data) => {
+            if (!player || !isPlayerReady) return;
+            
             isVideoPlaying = data.isPlaying;
             updatePlayPauseButton();
             
-            // Try to control the iframe video
-            const iframe = document.getElementById('videoPlayer');
-            if (iframe && iframe.contentWindow) {
-                try {
-                    if (data.isPlaying) {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    } else {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                    }
-                } catch(e) {
-                    console.log('Video sync attempt - iframe communication limited');
-                }
+            // Ignore the next state change to prevent infinite loop
+            ignoreNextStateChange = true;
+            
+            if (data.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
             }
         });
 
         socket.on('video-progress-sync', (data) => {
-            // Sync video time if possible
-            const iframe = document.getElementById('videoPlayer');
-            if (iframe && iframe.contentWindow) {
-                try {
-                    iframe.contentWindow.postMessage(`{"event":"command","func":"seekTo","args":"[${data.currentTime}, true]"}`, '*');
-                } catch(e) {
-                    console.log('Video time sync attempt - iframe communication limited');
-                }
+            if (!player || !isPlayerReady) return;
+            
+            // Only sync if time difference is significant
+            const currentTime = player.getCurrentTime();
+            if (Math.abs(currentTime - data.currentTime) > 2) {
+                player.seekTo(data.currentTime, true);
             }
         });
 
         socket.on('video-sync', (state) => {
-            // Handle video sync
+            if (!player || !isPlayerReady || !state.videoId) return;
+            
+            // Load video if different
+            if (currentVideoId !== state.videoId) {
+                currentVideoId = state.videoId;
+                player.loadVideoById(state.videoId);
+            }
+            
+            // Sync play state and time
+            ignoreNextStateChange = true;
+            if (state.isPlaying) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
+            
+            if (state.currentTime) {
+                player.seekTo(state.currentTime, true);
+            }
+            
             addSystemMessage('🔄 Videos synchronized!');
         });
 
@@ -682,7 +1023,7 @@
         });
 
         socket.on('award-given', (data) => {
-            showAwardPopup(data.award.name, `${data.user} gave an award!`);
+            showAwardPopup(data.award.name, data.award.emoji, `${data.user} gave an award!`);
             triggerRain('wholesome');
         });
 
@@ -750,12 +1091,8 @@
                     videoId = url.split('v=')[1].split('&')[0];
                 }
                 
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1&autoplay=0`;
-                currentVideoUrl = embedUrl;
-                
                 socket.emit('load-video', {
                     url: url,
-                    embedUrl: embedUrl,
                     videoId: videoId,
                     title: 'YouTube Video'
                 });
@@ -763,14 +1100,29 @@
         }
 
         function togglePlayPause() {
-            isVideoPlaying = !isVideoPlaying;
+            if (!player || !isPlayerReady) {
+                alert('Please load a video first!');
+                return;
+            }
+            
+            const playerState = player.getPlayerState();
+            const shouldPlay = playerState !== YT.PlayerState.PLAYING;
+            
+            isVideoPlaying = shouldPlay;
             updatePlayPauseButton();
             
             socket.emit('video-playpause', {
-                isPlaying: isVideoPlaying,
-                currentTime: 0, // We can't easily get current time from iframe
+                isPlaying: shouldPlay,
+                currentTime: player.getCurrentTime(),
                 timestamp: Date.now()
             });
+            
+            // Control local player
+            if (shouldPlay) {
+                player.playVideo();
+            } else {
+                player.pauseVideo();
+            }
         }
 
         function updatePlayPauseButton() {
@@ -779,24 +1131,19 @@
         }
 
         function syncVideo() {
-            socket.emit('sync-request');
+            if (!player || !isPlayerReady) {
+                addSystemMessage('⚠️ Please load a video first!');
+                return;
+            }
+            
+            socket.emit('sync-request', {
+                currentTime: player.getCurrentTime(),
+                isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING
+            });
         }
 
         function surpriseMe() {
             socket.emit('surprise-me');
-        }
-
-        function giveAward() {
-            const awards = [
-                { name: 'Wholesome Award', message: 'This date deserves a wholesome award! 🤗' },
-                { name: 'Silver Award', message: 'Have some silver for this amazing setup! 🥈' },
-                { name: 'Heart Eyes Award', message: 'Absolutely adorable date night! 😍' },
-                { name: 'MOMO Special', message: 'It\'s not MOMOS, it\'s MOMO! 😤' },
-                { name: 'Thomas Award', message: 'Thomas approved this date! 👀✅' }
-            ];
-            
-            const award = awards[Math.floor(Math.random() * awards.length)];
-            socket.emit('give-award', award);
         }
 
         function addMessage(content, username, userClass, isSystem = false) {
@@ -822,10 +1169,27 @@
             
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv; // Return the element so it can be removed later
         }
 
         function addSystemMessage(text) {
-            addMessage(text, 'System', '', true);
+            const messageDiv = addMessage(text, 'System', '', true);
+            
+            // Remove the system message after 2.5 seconds
+            setTimeout(() => {
+                if (messageDiv && messageDiv.parentNode) {
+                    messageDiv.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                    messageDiv.style.opacity = '0';
+                    messageDiv.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 2000);
         }
 
         function triggerRain(type) {
@@ -853,10 +1217,11 @@
             }, 4000);
         }
 
-        function showAwardPopup(awardName, message) {
+        function showAwardPopup(awardName, awardEmoji, message) {
             const popup = document.createElement('div');
             popup.className = 'award-popup';
             popup.innerHTML = `
+                <div class="award-emoji">${awardEmoji}</div>
                 <h3>🏆 ${awardName}</h3>
                 <p>${message}</p>
             `;
@@ -886,6 +1251,13 @@
             if (event.key === 'Enter') {
                 sendMessage();
             }
+        }
+
+        // Initialize awards when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAwards);
+        } else {
+            initializeAwards();
         }
 
         // Initialize welcome messages after connection
