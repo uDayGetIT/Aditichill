@@ -26,6 +26,8 @@ let currentVideoState = {
 
 let connectedUsers = new Map();
 let messageHistory = [];
+let currentPoll = null;
+let pollVotes = new Map();
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
@@ -173,25 +175,11 @@ io.on('connection', (socket) => {
     });
 
     // Handle surprise me button
-    socket.on('surprise-me', () => {
+    socket.on('surprise-me', (data) => {
         const user = connectedUsers.get(socket.id);
-        const surprises = [
-            "It's not MOMOS it's MOMO! 😤",
-            "Thomas is watching this chat right now 👀",
-            `${user?.username === 'ud0_0' ? 'Mumbai' : 'Dubai'} gang represent! 🎉`,
-            "This date is better than any Bollywood movie! 🎬",
-            "Plot twist: You're both falling for each other! 💕",
-            "Fun fact: You've both been smiling at your screens! 😊",
-            "Breaking news: This is the cutest virtual date ever! 📰",
-            "Thomas approved this message ✅",
-            "MOMO energy is strong with this one! ⚡",
-            "Distance: 1,926 km. Connection: Infinite! ♾️"
-        ];
-        
-        const randomSurprise = surprises[Math.floor(Math.random() * surprises.length)];
         
         io.emit('surprise-popup', {
-            message: randomSurprise,
+            message: data.message,
             user: user?.username || 'Someone'
         });
         
@@ -216,6 +204,42 @@ io.on('connection', (socket) => {
                 username: user.username,
                 isTyping: false
             });
+        }
+    });
+
+    // Handle poll system
+    socket.on('start-poll', (pollData) => {
+        currentPoll = {
+            ...pollData,
+            id: Date.now(),
+            startTime: Date.now()
+        };
+        pollVotes.clear();
+        
+        io.emit('poll-started', currentPoll);
+    });
+
+    socket.on('poll-vote', (voteData) => {
+        if (currentPoll && voteData.pollId === currentPoll.id) {
+            pollVotes.set(socket.id, {
+                user: voteData.user,
+                option: voteData.option
+            });
+            
+            io.emit('poll-vote', {
+                user: voteData.user,
+                option: voteData.option
+            });
+        }
+    });
+
+    socket.on('poll-end', () => {
+        if (currentPoll) {
+            io.emit('poll-ended', {
+                results: Array.from(pollVotes.values())
+            });
+            currentPoll = null;
+            pollVotes.clear();
         }
     });
 
