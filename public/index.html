@@ -556,6 +556,59 @@
             margin-bottom: 12px;
         }
 
+        /* Poll Styles */
+        .poll-options {
+            margin: 20px 0;
+        }
+
+        .poll-option {
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .poll-option:hover {
+            border-color: #ff4500;
+            background: #343536;
+        }
+
+        .poll-option.voted {
+            border-color: #46d160;
+            background: #2d5016;
+        }
+
+        #pollQuestion {
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #d7dadc;
+            line-height: 1.4;
+        }
+
+        .poll-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #272729;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 8px 0;
+        }
+
+        .poll-result-bar {
+            height: 6px;
+            background: #ff4500;
+            border-radius: 3px;
+            margin-top: 8px;
+            transition: width 0.5s ease;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.6; }
@@ -592,14 +645,22 @@
             <h2>🏆 Choose an Award</h2>
             
             <div class="award-categories">
-                <button class="category-btn active" onclick="filterAwards('all')">All</button>
-                <button class="category-btn" onclick="filterAwards('romantic')">💕 Romantic</button>
-                <button class="category-btn" onclick="filterAwards('funny')">😂 Funny</button>
-                <button class="category-btn" onclick="filterAwards('cute')">🥰 Cute</button>
-                <button class="category-btn" onclick="filterAwards('special')">✨ Special</button>
+                <button class="category-btn active" onclick="filterAwards('all')">All Awards</button>
             </div>
             
             <div class="awards-grid" id="awardsGrid"></div>
+        </div>
+    </div>
+    
+    <!-- Poll Modal -->
+    <div class="award-modal" id="pollModal">
+        <div class="award-modal-content">
+            <h2>💝 Getting To Know Each Other</h2>
+            <div id="pollContent">
+                <div id="pollQuestion"></div>
+                <div class="poll-options" id="pollOptions"></div>
+                <div id="pollResults" style="display: none;"></div>
+            </div>
         </div>
     </div>
     
@@ -691,63 +752,16 @@
         let isPlayerReady = false;
         let ignoreNextStateChange = false;
 
-        // Award system
+        // Award system - Personal & Fun Awards Only
         const awards = {
-            romantic: [
-                { emoji: '💕', name: 'Love Award', description: 'You make my heart skip a beat!' },
-                { emoji: '💖', name: 'Heart Eyes', description: 'Absolutely smitten!' },
-                { emoji: '🌹', name: 'Rose Gold', description: 'Beautiful like a rose' },
-                { emoji: '💐', name: 'Bouquet', description: 'A virtual bouquet for you' },
-                { emoji: '💎', name: 'Diamond Heart', description: 'You are precious to me' },
-                { emoji: '🥰', name: 'Lovey Dovey', description: 'So adorable!' },
-                { emoji: '😍', name: 'Heart Eyes', description: 'Swooning over here!' },
-                { emoji: '💏', name: 'Kiss Kiss', description: 'Sending virtual kisses' },
-                { emoji: '💌', name: 'Love Letter', description: 'Written with love' },
-                { emoji: '🦋', name: 'Butterflies', description: 'You give me butterflies' },
-                { emoji: '✨', name: 'Sparkling', description: 'You make everything sparkle' },
-                { emoji: '🌟', name: 'My Star', description: 'You are my shining star' }
-            ],
-            funny: [
-                { emoji: '😂', name: 'Dead', description: 'I am literally dying!' },
-                { emoji: '🤣', name: 'ROFL', description: 'Rolling on the floor laughing' },
-                { emoji: '😭', name: 'Crying Laughing', description: 'Tears of joy!' },
-                { emoji: '🤡', name: 'Clown Award', description: 'You are hilarious!' },
-                { emoji: '🍕', name: 'Pizza Time', description: 'As essential as pizza' },
-                { emoji: '🤪', name: 'Crazy', description: 'Absolutely bonkers!' },
-                { emoji: '👻', name: 'Spooky Funny', description: 'Boo-tifully funny' },
-                { emoji: '🤠', name: 'Yeehaw', description: 'Howdy partner, that was funny!' },
-                { emoji: '🦄', name: 'Unicorn Rare', description: 'Rare level of humor' },
-                { emoji: '🐸', name: 'Frog Vibes', description: 'Ribbit-ing humor' },
-                { emoji: '🎭', name: 'Comedy Gold', description: 'Pure comedy genius' },
-                { emoji: '🍌', name: 'Banana Split', description: 'Split my sides laughing' }
-            ],
-            cute: [
-                { emoji: '🥺', name: 'Puppy Eyes', description: 'So incredibly cute!' },
-                { emoji: '🐱', name: 'Kitten', description: 'Cute as a kitten' },
-                { emoji: '🐶', name: 'Puppy', description: 'Puppy level cuteness' },
-                { emoji: '🧸', name: 'Teddy Bear', description: 'Huggable and cute' },
-                { emoji: '🍯', name: 'Honey', description: 'Sweet as honey' },
-                { emoji: '🌸', name: 'Cherry Blossom', description: 'Delicate and beautiful' },
-                { emoji: '🦔', name: 'Hedgehog', description: 'Prickly but adorable' },
-                { emoji: '🐣', name: 'Baby Chick', description: 'Newly hatched cuteness' },
-                { emoji: '🍓', name: 'Strawberry', description: 'Berry cute!' },
-                { emoji: '🎀', name: 'Pretty Bow', description: 'Tied up in cuteness' },
-                { emoji: '☁️', name: 'Fluffy Cloud', description: 'Soft and dreamy' },
-                { emoji: '🌈', name: 'Rainbow', description: 'Colorfully adorable' }
-            ],
-            special: [
-                { emoji: '👑', name: 'Crown Royal', description: 'You are royalty!' },
-                { emoji: '🏆', name: 'Champion', description: 'Absolute champion!' },
-                { emoji: '🎯', name: 'Bullseye', description: 'Perfect shot!' },
-                { emoji: '🚀', name: 'To The Moon', description: 'Out of this world!' },
-                { emoji: '⚡', name: 'Lightning', description: 'Electrifying!' },
-                { emoji: '🔥', name: 'Fire Award', description: 'This is straight fire!' },
-                { emoji: '💯', name: 'Hundred', description: '100% perfect!' },
-                { emoji: '🎪', name: 'Circus Master', description: 'Master of entertainment' },
-                { emoji: '🎨', name: 'Artistic', description: 'Pure artistry!' },
-                { emoji: '🎵', name: 'Music to Ears', description: 'Music to my ears' },
-                { emoji: '🌍', name: 'World Class', description: 'World-class quality' },
-                { emoji: '💫', name: 'Shooting Star', description: 'Make a wish!' }
+            personal: [
+                { emoji: '😴', name: 'Nobita Award', description: 'I think you should sleep' },
+                { emoji: '💕', name: 'Heart Award', description: 'I Love it' },
+                { emoji: '🤗', name: 'Hug Award', description: 'Sending you a tight virtual hug' },
+                { emoji: '🥟', name: 'Momo Award', description: 'You seem to be hungry' },
+                { emoji: '😂', name: 'Laugh Award', description: 'Stop this is too funny' },
+                { emoji: '🤝', name: 'Hand Award', description: 'Can you hold my hand' },
+                { emoji: '🌈', name: 'Aditya Award', description: 'Suddenly Gay' }
             ]
         };
 
@@ -787,12 +801,11 @@
         // Initialize awards grid
         function initializeAwards() {
             const grid = document.getElementById('awardsGrid');
-            const allAwards = [...awards.romantic, ...awards.funny, ...awards.cute, ...awards.special];
+            const allAwards = awards.personal;
             
             allAwards.forEach((award, index) => {
-                const category = Object.keys(awards).find(cat => awards[cat].includes(award));
                 const div = document.createElement('div');
-                div.className = `award-item ${category}`;
+                div.className = `award-item personal`;
                 div.innerHTML = `
                     <span class="award-emoji">${award.emoji}</span>
                     <div class="award-name">${award.name}</div>
@@ -816,14 +829,10 @@
             document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
-            // Show/hide awards
+            // Show all awards (since we only have one category now)
             const awards = document.querySelectorAll('.award-item');
             awards.forEach(award => {
-                if (category === 'all' || award.classList.contains(category)) {
-                    award.style.display = 'block';
-                } else {
-                    award.style.display = 'none';
-                }
+                award.style.display = 'block';
             });
         }
 
@@ -876,6 +885,20 @@
         const socket = io();
         let typingTimer;
         let currentVideoUrl = '';
+        let pollTimer = null;
+
+        // Start poll timer (10-15 minutes)
+        function startPollTimer() {
+            const randomDelay = (10 + Math.random() * 5) * 60 * 1000; // 10-15 minutes
+            
+            pollTimer = setTimeout(() => {
+                if (document.querySelectorAll('.message').length > 5) { // Only if there's been some conversation
+                    const randomPoll = romanticPolls[Math.floor(Math.random() * romanticPolls.length)];
+                    socket.emit('start-poll', randomPoll);
+                }
+                startPollTimer(); // Schedule next poll
+            }, randomDelay);
+        }
 
         // Initialize awards when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -892,6 +915,9 @@
                 username: currentUser,
                 location: currentUser === 'ud0_0' ? 'Mumbai' : 'Dubai'
             });
+            
+            // Start poll timer after connection
+            startPollTimer();
         });
 
         socket.on('disconnect', () => {
@@ -1032,6 +1058,27 @@
             triggerRain('wholesome');
         });
 
+        // Poll events
+        socket.on('poll-started', (pollData) => {
+            currentPoll = pollData;
+            pollVotes.clear();
+            hasVotedInCurrentPoll = false;
+            showPoll(pollData);
+            addSystemMessage('💝 A new poll has started! Check it out!');
+        });
+
+        socket.on('poll-vote', (voteData) => {
+            pollVotes.set(voteData.user, voteData.option);
+            updatePollResults();
+        });
+
+        socket.on('poll-ended', () => {
+            setTimeout(() => {
+                document.getElementById('pollModal').classList.remove('show');
+                currentPoll = null;
+            }, 5000); // Show results for 5 seconds
+        });
+
         // Rain effects mapping
         const rainTriggers = {
             'heart': '❤️',
@@ -1143,7 +1190,8 @@
         }
 
         function surpriseMe() {
-            socket.emit('surprise-me');
+            const randomSurprise = personalSurprises[Math.floor(Math.random() * personalSurprises.length)];
+            socket.emit('surprise-me', { message: randomSurprise });
         }
 
         function addMessage(content, username, userClass, isSystem = false) {
@@ -1250,6 +1298,87 @@
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 sendMessage();
+            }
+        }
+
+        // Poll functions
+        function showPoll(pollData) {
+            document.getElementById('pollQuestion').textContent = pollData.question;
+            
+            const optionsContainer = document.getElementById('pollOptions');
+            optionsContainer.innerHTML = '';
+            
+            pollData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'poll-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => votePoll(index, option);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('pollResults').style.display = 'none';
+            document.getElementById('pollModal').classList.add('show');
+        }
+
+        function votePoll(optionIndex, optionText) {
+            if (hasVotedInCurrentPoll) return;
+            
+            hasVotedInCurrentPoll = true;
+            
+            // Mark as voted
+            document.querySelectorAll('.poll-option')[optionIndex].classList.add('voted');
+            document.querySelectorAll('.poll-option').forEach(opt => opt.style.pointerEvents = 'none');
+            
+            // Send vote
+            socket.emit('poll-vote', {
+                pollId: currentPoll.id,
+                option: optionText,
+                user: currentUser
+            });
+            
+            // Show results after a moment
+            setTimeout(() => {
+                document.getElementById('pollOptions').style.display = 'none';
+                document.getElementById('pollResults').style.display = 'block';
+                updatePollResults();
+            }, 1000);
+        }
+
+        function updatePollResults() {
+            if (!currentPoll) return;
+            
+            const resultsContainer = document.getElementById('pollResults');
+            resultsContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #46d160;">Results so far:</h3>';
+            
+            const totalVotes = pollVotes.size;
+            const voteCounts = new Map();
+            
+            // Count votes
+            pollVotes.forEach(option => {
+                voteCounts.set(option, (voteCounts.get(option) || 0) + 1);
+            });
+            
+            // Display results
+            currentPoll.options.forEach(option => {
+                const count = voteCounts.get(option) || 0;
+                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'poll-result';
+                resultDiv.innerHTML = `
+                    <div>
+                        <div>${option}</div>
+                        <div class="poll-result-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div style="color: #ff4500; font-weight: bold;">${count} vote${count !== 1 ? 's' : ''}</div>
+                `;
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            if (totalVotes >= 2) {
+                setTimeout(() => {
+                    socket.emit('poll-end');
+                }, 3000);
             }
         }
 
