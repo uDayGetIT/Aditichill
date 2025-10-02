@@ -1,9 +1,4 @@
-<div id="pollQuestion"></div>
-                <div class="poll-options" id="pollOptions"></div>
-                <div id="pollResults" style="display: none;"></div>
-            </div>
-        </div>
-    </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,78 +18,6 @@
             overflow-x: hidden;
         }
 
-        /* Login Screen */
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #0b1426;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10005;
-        }
-
-        .login-screen.hidden {
-            display: none;
-        }
-
-        .login-box {
-            background: #1a1a1b;
-            border: 1px solid #343536;
-            border-radius: 8px;
-            padding: 40px;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .login-box h1 {
-            color: #ff4500;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .login-box p {
-            color: #818384;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            background: #272729;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            color: #d7dadc;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .login-input::placeholder {
-            color: #818384;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #0079d3;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .login-btn:hover {
-            background: #1484d6;
-        }
-
         .container {
             display: flex;
             height: 100vh;
@@ -106,175 +29,6 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Tab System */
-        .content-tabs {
-            display: flex;
-            margin-bottom: 16px;
-            background: #1a1a1b;
-            border-radius: 4px;
-            border: 1px solid #343536;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px 16px;
-            background: none;
-            border: none;
-            color: #818384;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-right: 1px solid #343536;
-        }
-
-        .tab-btn:last-child {
-            border-right: none;
-        }
-
-        .tab-btn.active {
-            color: #ff4500;
-            background: #272729;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-
-        /* PDF Viewer Styles */
-        #pdfViewer {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            background: #fff;
-        }
-
-        .pdf-controls {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        /* Code Editor Styles */
-        #codeEditor {
-            width: 100%;
-            height: 300px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 14px;
-            resize: vertical;
-        }
-
-        #codeOutput {
-            width: 100%;
-            height: 100px;
-            background: #0c0c0c;
-            color: #00ff00;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            padding: 12px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 12px;
-            margin-top: 12px;
-            overflow-y: auto;
-        }
-
-        /* Voice Chat Styles */
-        .voice-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin: 12px 0;
-        }
-
-        .voice-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #343536;
-            background: #272729;
-            color: #d7dadc;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .voice-btn.active {
-            background: #46d160;
-            border-color: #46d160;
-            color: white;
-        }
-
-        .voice-btn.muted {
-            background: #ff4444;
-            border-color: #ff4444;
-            color: white;
-        }
-
-        /* Video Call Modal */
-        .video-call-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10002;
-        }
-
-        .video-call-modal.show {
-            display: flex;
-        }
-
-        .video-call-container {
-            width: 90%;
-            height: 90%;
-            max-width: 1200px;
-            background: #1a1a1b;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #jitsiContainer {
-            width: 100%;
-            height: 100%;
-        }
-
-        .close-call-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #ff4444;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            z-index: 10003;
-        }
-
-        .close-call-btn:hover {
-            background: #ff6666;
         }
 
         .subreddit-header {
@@ -443,80 +197,6 @@
             flex-direction: column;
         }
 
-        /* Diary Styles */
-        .diary-panel {
-            background: #1a1a1b;
-            border: 1px solid #343536;
-            border-radius: 4px;
-            margin-bottom: 16px;
-            overflow: hidden;
-        }
-
-        .diary-header {
-            background: #272729;
-            padding: 8px 12px;
-            border-bottom: 1px solid #343536;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .diary-title {
-            color: #d7dadc;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .diary-toggle {
-            background: none;
-            border: none;
-            color: #818384;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .diary-content {
-            max-height: 150px;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .diary-content.expanded {
-            max-height: 300px;
-        }
-
-        .diary-textarea {
-            width: 100%;
-            height: 120px;
-            background: #272729;
-            border: none;
-            color: #d7dadc;
-            padding: 12px;
-            font-size: 12px;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-        }
-
-        .diary-textarea::placeholder {
-            color: #818384;
-        }
-
-        .diary-save {
-            background: #0079d3;
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 3px;
-            font-size: 10px;
-            cursor: pointer;
-            margin: 8px 12px;
-        }
-
-        .diary-save:hover {
-            background: #1484d6;
-        }
-
         .chat-container {
             background: #1a1a1b;
             border: 1px solid #343536;
@@ -632,7 +312,7 @@
             color: #46d160;
             text-align: center;
             font-style: italic;
-            animation: flashMessage 2s ease-in-out forwards;
+            animation: flashMessage 8s ease-in-out forwards;
         }
 
         @keyframes flashMessage {
@@ -884,44 +564,6 @@
             font-style: italic;
         }
 
-        /* Memory and Mood Features */
-        .floating-hearts {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: none;
-        }
-
-        .floating-hearts.show {
-            display: block;
-            animation: floatUp 3s ease-out forwards;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0px); opacity: 1; }
-            100% { transform: translateY(-100px); opacity: 0; }
-        }
-
-        .memory-toast {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: #2d5016;
-            border: 1px solid #46d160;
-            color: #46d160;
-            padding: 12px 16px;
-            border-radius: 8px;
-            z-index: 1001;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
         /* Poll Styles */
         .poll-options {
             margin: 20px 0;
@@ -1002,47 +644,7 @@
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-box">
-            <h1>💕 Our Virtual Space</h1>
-            <p>Enter your details to join your date</p>
-            
-            <input 
-                type="text" 
-                class="login-input" 
-                id="usernameInput" 
-                placeholder="Your Username (e.g., Alex, Sarah, etc.)"
-                maxlength="20"
-            >
-            
-            <input 
-                type="text" 
-                class="login-input" 
-                id="locationInput" 
-                placeholder="Your City (e.g., Mumbai, Dubai, etc.)"
-                maxlength="30"
-            >
-            
-            <button class="login-btn" onclick="joinSpace()">Join Our Space 💖</button>
-        </div>
-    </div>
-
     <div class="rain-container" id="rainContainer"></div>
-    
-    <!-- Floating Hearts for Special Moments -->
-    <div class="floating-hearts" id="floatingHearts">💕💕💕</div>
-    
-    <!-- Memory Toast -->
-    <div class="memory-toast" id="memoryToast">Memory saved! 📸✨</div>
-    
-    <!-- Video Call Modal -->
-    <div class="video-call-modal" id="videoCallModal">
-        <div class="video-call-container">
-            <button class="close-call-btn" onclick="endCall()">End Call ✖️</button>
-            <div id="jitsiContainer"></div>
-        </div>
-    </div>
     
     <!-- Award Modal -->
     <div class="award-modal" id="awardModal">
@@ -1056,7 +658,14 @@
             
             <div class="awards-grid" id="awardsGrid"></div>
         </div>
-    </div><div id="pollQuestion"></div>
+    </div>
+    
+    <!-- Poll Modal -->
+    <div class="award-modal" id="pollModal">
+        <div class="award-modal-content">
+            <h2>💝 Getting To Know Each Other</h2>
+            <div id="pollContent">
+                <div id="pollQuestion"></div>
                 <div class="poll-options" id="pollOptions"></div>
                 <div id="pollResults" style="display: none;"></div>
             </div>
@@ -1071,7 +680,7 @@
                     <div class="connection-status">
                         <span class="status-indicator" id="connectionStatus"></span>
                         <span id="connectionText">Connecting...</span>
-                        <span id="locationDisplay">📍 Connecting your cities...</span>
+                        <span>📍 Mumbai ↔️ Dubai • 1,926km apart</span>
                         <span style="margin-left: 12px;" id="timeDisplay">🕐 Loading times...</span>
                     </div>
                     <div class="upvote-section">
@@ -1085,108 +694,33 @@
             <div class="video-post">
                 <div class="post-header">
                     <span class="op-tag">OP</span>
-                    <span id="currentUser">Posted by u/ud0_0</span>
+                    <span id="currentUser">Posted by u/loading...</span>
                     <span>•</span>
                     <span>just now</span>
                     <span>•</span>
                     <span>📌 Pinned</span>
                 </div>
                 
-                <!-- Tab Navigation -->
-                <div class="content-tabs">
-                    <button class="tab-btn active" onclick="switchTab('video')">🎬 Video</button>
-                    <button class="tab-btn" onclick="switchTab('pdf')">📖 Books</button>
-                    <button class="tab-btn" onclick="switchTab('code')">💻 Code</button>
-                </div>
-
-                <!-- Voice Controls -->
-                <div class="voice-controls">
-                    <button class="voice-btn" id="videoCallBtn" onclick="startVideoCall()" title="Start Video/Voice Call">📹</button>
-                    <button class="voice-btn" id="audioCallBtn" onclick="startAudioCall()" title="Start Audio Only Call">🎤</button>
-                    <span id="voiceStatus" style="color: #818384; font-size: 12px;">Click to start call</span>
-                </div>
+                <input 
+                    type="text" 
+                    class="url-input" 
+                    id="videoUrl" 
+                    placeholder="Drop that YouTube link here... let's watch together! 🎬"
+                >
                 
-                <!-- Video Tab Content -->
-                <div class="tab-content active" id="videoTab">
-                    <input 
-                        type="text" 
-                        class="url-input" 
-                        id="videoUrl" 
-                        placeholder="Drop that YouTube link here... let's watch together! 🎬"
-                    >
-                    
-                    <div id="videoPlayer"></div>
-                    
-                    <div class="video-controls">
-                        <button class="control-btn" id="loadBtn" onclick="loadVideo()">Load Video</button>
-                        <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
-                        <button class="control-btn" id="syncBtn" onclick="syncVideo()">Sync 🔄</button>
-                        <button class="control-btn" id="surpriseBtn" onclick="surpriseMe()">Surprise Me! ✨</button>
-                        <button class="control-btn" id="awardBtn" onclick="openAwardModal()">Give Award 🏆</button>
-                        <button class="control-btn" id="moodBtn" onclick="shareMood()">Share Mood 💭</button>
-                        <button class="control-btn" id="memoryBtn" onclick="createMemory()">Save Memory 📸</button>
-                    </div>
-                </div>
-
-                <!-- PDF Tab Content -->
-                <div class="tab-content" id="pdfTab">
-                    <input 
-                        type="file" 
-                        id="pdfFile" 
-                        accept=".pdf"
-                        onchange="loadPDF()"
-                        style="margin-bottom: 12px;"
-                    >
-                    <div id="pdfViewer">
-                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #818384;">
-                            📖 Upload a PDF to read together
-                        </div>
-                    </div>
-                    <div class="pdf-controls">
-                        <button class="control-btn" onclick="previousPage()">◀ Previous</button>
-                        <span id="pageInfo" style="color: #d7dadc;">Page 0 of 0</span>
-                        <button class="control-btn" onclick="nextPage()">Next ▶</button>
-                        <button class="control-btn" onclick="syncPDF()">Sync Page 📖</button>
-                    </div>
-                </div>
-
-                <!-- Code Tab Content -->
-                <div class="tab-content" id="codeTab">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <span style="color: #d7dadc; font-size: 14px;">🐍 Python Practice Together</span>
-                        <button class="control-btn" onclick="runCode()">▶ Run Code</button>
-                    </div>
-                    
-                    <textarea 
-                        id="codeEditor" 
-                        placeholder="# Write Python code here... let's learn together!
-print('Hello from our virtual date!')"
-                        oninput="shareCode()"
-                    ></textarea>
-                    
-                    <div id="codeOutput"></div>
+                <div id="videoPlayer"></div>
+                
+                <div class="video-controls">
+                    <button class="control-btn" id="loadBtn" onclick="loadVideo()">Load Video</button>
+                    <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
+                    <button class="control-btn" id="syncBtn" onclick="syncVideo()">Sync 🔄</button>
+                    <button class="control-btn" id="surpriseBtn" onclick="surpriseMe()">Surprise Me! ✨</button>
+                    <button class="control-btn" id="awardBtn" onclick="openAwardModal()">Give Award 🏆</button>
                 </div>
             </div>
         </div>
         
         <div class="chat-section">
-            <!-- Diary Panel -->
-            <div class="diary-panel">
-                <div class="diary-header">
-                    <span class="diary-title">📝 Our Diary</span>
-                    <button class="diary-toggle" onclick="toggleDiary()">▼</button>
-                </div>
-                <div class="diary-content" id="diaryContent">
-                    <textarea 
-                        id="diaryTextarea" 
-                        class="diary-textarea" 
-                        placeholder="Write your thoughts, memories, feelings about us... 💕"
-                    ></textarea>
-                    <button class="diary-save" onclick="saveDiary()">💾 Save Entry</button>
-                </div>
-            </div>
-            
-            <div class="chat-container">
             <div class="chat-container">
                 <div class="chat-header">
                     <h3>Our Space <span class="live-indicator">ACTIVE</span></h3>
@@ -1214,8 +748,6 @@ print('Hello from our virtual date!')"
         </div>
     </div>
 
-    <!-- Jitsi Meet API -->
-    <script src='https://meet.jit.si/external_api.js'></script>
     <!-- YouTube API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <!-- Socket.io -->
@@ -1255,12 +787,37 @@ print('Hello from our virtual date!')"
             "Even Raj and Simran didn't have this much chemistry! 💫"
         ];
 
-        // Global variables for new features
-        let pdfDoc = null;
-        let currentPage = 1;
-        let totalPages = 0;
-        let jitsiApi = null;
-        let isInCall = false;
+        // Poll system
+        const romanticPolls = [
+            {
+                question: "Would you want to meet in person? 💕",
+                options: ["Yes, I can't wait! 😍", "Maybe someday... 🤔", "Let's take it slow 😊", "Virtual dates are perfect! 💻"]
+            },
+            {
+                question: "I think I'm falling for you... What about you? 💘",
+                options: ["Same here! 😍", "Maybe a little... 😳", "Let's see where this goes 💫", "Friends first! 🤝"]
+            },
+            {
+                question: "What's your favorite thing about our virtual dates? ✨",
+                options: ["Your smile through the screen 😊", "Our conversations 💬", "Watching movies together 🎬", "Everything! 💕"]
+            },
+            {
+                question: "If we met tomorrow, what would you want to do first? 🌟",
+                options: ["Give you a big hug! 🤗", "Hold your hand 🤝", "Go for coffee ☕", "Just talk for hours 💬"]
+            },
+            {
+                question: "Do you think about me when we're not chatting? 💭",
+                options: ["All the time! 😍", "Sometimes... 😊", "When I see something funny 😂", "During movies 🎬"]
+            },
+            {
+                question: "What would make our next virtual date perfect? 💝",
+                options: ["More cuddle awards 🤗", "Cooking together online 👩‍🍳", "Playing games 🎮", "Just being ourselves 💕"]
+            }
+        ];
+
+        let currentPoll = null;
+        let pollVotes = new Map();
+        let hasVotedInCurrentPoll = false;
 
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {
@@ -1336,16 +893,6 @@ print('Hello from our virtual date!')"
         function giveSelectedAward(award) {
             socket.emit('give-award', award);
             closeAwardModal();
-            
-            // Disable the award for 30 seconds to prevent spam
-            const awardElement = event.target.closest('.award-item');
-            awardElement.style.opacity = '0.5';
-            awardElement.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                awardElement.style.opacity = '1';
-                awardElement.style.pointerEvents = 'auto';
-            }, 30000); // 30 seconds cooldown
         }
 
         // Update time display
@@ -1392,13 +939,24 @@ print('Hello from our virtual date!')"
         const socket = io();
         let typingTimer;
         let currentVideoUrl = '';
+        let pollTimer = null;
 
-        // Remove poll timer initialization and related functions
-        
+        // Start poll timer (10-15 minutes)
+        function startPollTimer() {
+            const randomDelay = (10 + Math.random() * 5) * 60 * 1000; // 10-15 minutes
+            
+            pollTimer = setTimeout(() => {
+                if (document.querySelectorAll('.message').length > 5) { // Only if there's been some conversation
+                    const randomPoll = romanticPolls[Math.floor(Math.random() * romanticPolls.length)];
+                    socket.emit('start-poll', randomPoll);
+                }
+                startPollTimer(); // Schedule next poll
+            }, randomDelay);
+        }
+
         // Initialize awards when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeAwards();
-            loadDiaryFromStorage();
         });
 
         // Connection status
@@ -1406,13 +964,14 @@ print('Hello from our virtual date!')"
             document.getElementById('connectionStatus').classList.remove('disconnected');
             document.getElementById('connectionText').textContent = 'Connected';
             
-            // Only join if user is logged in
-            if (currentUser) {
-                socket.emit('user-join', {
-                    username: currentUser,
-                    location: currentLocation
-                });
-            }
+            // Join the room
+            socket.emit('user-join', {
+                username: currentUser,
+                location: currentUser === 'ud0_0' ? 'Mumbai' : 'Dubai'
+            });
+            
+            // Start poll timer after connection
+            startPollTimer();
         });
 
         socket.on('disconnect', () => {
@@ -1433,7 +992,8 @@ print('Hello from our virtual date!')"
         // Chat messages
         socket.on('new-message', (messageData) => {
             if (messageData.username !== currentUser) {
-                addMessage(messageData.content, messageData.username, '');
+                addMessage(messageData.content, messageData.username, 
+                    messageData.username === 'ud0_0' ? 'user1' : 'user2');
             }
         });
 
@@ -1552,6 +1112,27 @@ print('Hello from our virtual date!')"
             triggerRain('wholesome');
         });
 
+        // Poll events
+        socket.on('poll-started', (pollData) => {
+            currentPoll = pollData;
+            pollVotes.clear();
+            hasVotedInCurrentPoll = false;
+            showPoll(pollData);
+            addSystemMessage('💝 A new poll has started! Check it out!');
+        });
+
+        socket.on('poll-vote', (voteData) => {
+            pollVotes.set(voteData.user, voteData.option);
+            updatePollResults();
+        });
+
+        socket.on('poll-ended', () => {
+            setTimeout(() => {
+                document.getElementById('pollModal').classList.remove('show');
+                currentPoll = null;
+            }, 5000); // Show results for 5 seconds
+        });
+
         // Rain effects mapping - Your personal language
         const rainTriggers = {
             'ex': '😤',      // something angry
@@ -1569,7 +1150,7 @@ print('Hello from our virtual date!')"
             
             if (message) {
                 // Add to own chat immediately
-                addMessage(message, currentUser, '');
+                addMessage(message, currentUser, currentUser === 'ud0_0' ? 'user1' : 'user2');
                 
                 // Send to server
                 socket.emit('send-message', {
@@ -1579,10 +1160,6 @@ print('Hello from our virtual date!')"
                 
                 input.value = '';
                 socket.emit('typing-stop');
-                
-                // Track stats
-                incrementMessageCount();
-                updateConnectionStats();
             }
         }
 
@@ -1771,6 +1348,87 @@ print('Hello from our virtual date!')"
             }
         }
 
+        // Poll functions
+        function showPoll(pollData) {
+            document.getElementById('pollQuestion').textContent = pollData.question;
+            
+            const optionsContainer = document.getElementById('pollOptions');
+            optionsContainer.innerHTML = '';
+            
+            pollData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'poll-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => votePoll(index, option);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('pollResults').style.display = 'none';
+            document.getElementById('pollModal').classList.add('show');
+        }
+
+        function votePoll(optionIndex, optionText) {
+            if (hasVotedInCurrentPoll) return;
+            
+            hasVotedInCurrentPoll = true;
+            
+            // Mark as voted
+            document.querySelectorAll('.poll-option')[optionIndex].classList.add('voted');
+            document.querySelectorAll('.poll-option').forEach(opt => opt.style.pointerEvents = 'none');
+            
+            // Send vote
+            socket.emit('poll-vote', {
+                pollId: currentPoll.id,
+                option: optionText,
+                user: currentUser
+            });
+            
+            // Show results after a moment
+            setTimeout(() => {
+                document.getElementById('pollOptions').style.display = 'none';
+                document.getElementById('pollResults').style.display = 'block';
+                updatePollResults();
+            }, 1000);
+        }
+
+        function updatePollResults() {
+            if (!currentPoll) return;
+            
+            const resultsContainer = document.getElementById('pollResults');
+            resultsContainer.innerHTML = '<h3 style="margin-bottom: 15px; color: #46d160;">Results so far:</h3>';
+            
+            const totalVotes = pollVotes.size;
+            const voteCounts = new Map();
+            
+            // Count votes
+            pollVotes.forEach(option => {
+                voteCounts.set(option, (voteCounts.get(option) || 0) + 1);
+            });
+            
+            // Display results
+            currentPoll.options.forEach(option => {
+                const count = voteCounts.get(option) || 0;
+                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'poll-result';
+                resultDiv.innerHTML = `
+                    <div>
+                        <div>${option}</div>
+                        <div class="poll-result-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div style="color: #ff4500; font-weight: bold;">${count} vote${count !== 1 ? 's' : ''}</div>
+                `;
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            if (totalVotes >= 2) {
+                setTimeout(() => {
+                    socket.emit('poll-end');
+                }, 3000);
+            }
+        }
+
         // Initialize awards when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeAwards);
@@ -1782,10 +1440,10 @@ print('Hello from our virtual date!')"
         socket.on('system-message', (data) => {
             if (data.message.includes('joined the virtual date')) {
                 setTimeout(() => {
-                    addSystemMessage('💕 Welcome to Our Space!');
-                    addSystemMessage('💡 Try typing "heart", "ex", "bc", "wtf" for special effects!');
-                    addSystemMessage('🎬 Explore Video, Books, and Code tabs together!');
-                }, 2000);
+                    addSystemMessage('💕 Welcome to your virtual date Aditi!');
+                    addSystemMessage('💡 Try typing "bc", "heart", "wtf", or "ex" for special effects!');
+                    addSystemMessage('🎬 Load a YouTube video and it will sync for both of us!');
+                }, 3000);
             }
         });
     </script>
