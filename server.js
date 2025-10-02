@@ -1,4 +1,38 @@
-const express = require('express');
+// Handle poll system
+    socket.on('start-poll', (pollData) => {
+        currentPoll = {
+            ...pollData,
+            id: Date.now(),
+            startTime: Date.now()
+        };
+        pollVotes.clear();
+        
+        io.emit('poll-started', currentPoll);
+    });
+
+    socket.on('poll-vote', (voteData) => {
+        if (currentPoll && voteData.pollId === currentPoll.id) {
+            pollVotes.set(socket.id, {
+                user: voteData.user,
+                option: voteData.option
+            });
+            
+            io.emit('poll-vote', {
+                user: voteData.user,
+                option: voteData.option
+            });
+        }
+    });
+
+    socket.on('poll-end', () => {
+        if (currentPoll) {
+            io.emit('poll-ended', {
+                results: Array.from(pollVotes.values())
+            });
+            currentPoll = null;
+            pollVotes.clear();
+        }
+    });const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
@@ -52,8 +86,12 @@ io.on('connection', (socket) => {
             socket.emit('new-message', msg);
         });
 
-        // Send user count
+        // Send user count and user list
         io.emit('user-count', connectedUsers.size);
+        
+        // Broadcast all connected users
+        const userList = Array.from(connectedUsers.values());
+        io.emit('users-connected', { users: userList });
     });
 
     // Handle chat messages
@@ -205,6 +243,64 @@ io.on('connection', (socket) => {
                 isTyping: false
             });
         }
+    });
+
+    // NEW FEATURES - PDF, Code, Voice Chat
+    
+    // Handle PDF synchronization
+    socket.on('pdf-loaded', (data) => {
+        const user = connectedUsers.get(socket.id);
+        socket.broadcast.emit('pdf-loaded', {
+            filename: data.filename,
+            user: user?.username || 'Someone'
+        });
+    });
+
+    socket.on('pdf-page-change', (data) => {
+        socket.broadcast.emit('pdf-page-change', {
+            page: data.page
+        });
+    });
+
+    socket.on('pdf-sync-request', (data) => {
+        socket.broadcast.emit('pdf-page-change', {
+            page: data.page
+        });
+    });
+
+    // Handle code editor synchronization
+    socket.on('code-update', (data) => {
+        socket.broadcast.emit('code-update', {
+            code: data.code
+        });
+    });
+
+    socket.on('code-run', (data) => {
+        socket.broadcast.emit('code-run', {
+            code: data.code,
+            output: data.output
+        });
+    });
+
+    // Handle video/audio calls
+    socket.on('call-started', (data) => {
+        socket.broadcast.emit('call-started', {
+            type: data.type,
+            user: data.user
+        });
+    });
+
+    socket.on('share-room', (data) => {
+        socket.broadcast.emit('share-room', {
+            roomName: data.roomName,
+            audioOnly: data.audioOnly
+        });
+    });
+
+    socket.on('call-ended', (data) => {
+        socket.broadcast.emit('call-ended', {
+            user: data.user
+        });
     });
 
     // Handle poll system
